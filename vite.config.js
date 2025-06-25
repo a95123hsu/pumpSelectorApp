@@ -6,17 +6,5 @@ export default defineConfig({
   base: '/',
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
-    minify: 'terser',
-    sourcemap: false,
-    emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          charts: ['plotly.js', 'react-plotly.js', 'recharts']
-        }
-      }
-    }
   }
 });
