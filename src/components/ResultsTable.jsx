@@ -3,6 +3,7 @@ import { useAppContext } from '../context/AppContext';
 
 const ResultsTable = ({ 
   pumpData = [], 
+  paginatedData = [],  // Add this prop
   isLoading = false,
   selectedPumps = [],
   togglePumpSelection,
@@ -202,7 +203,7 @@ const ResultsTable = ({
   };
   
   // Get the sorted data
-  const sortedPumpData = getSortedItems(pumpData);
+  const sortedData = getSortedItems(paginatedData);
   
   // Helper to get sort direction icon
   const getSortDirectionIcon = (columnId) => {
@@ -246,7 +247,7 @@ const ResultsTable = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {sortedPumpData.map((pump, index) => (
+            {sortedData.map((pump, index) => (
               <tr 
                 key={`${pump["Model No."]}-${index}`} 
                 className="hover:bg-gray-50"

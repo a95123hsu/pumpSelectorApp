@@ -13,7 +13,10 @@ import {
 import { AppProvider } from './context/AppContext';
 import Header from './components/Header';
 import DataStatus from './components/DataStatus';
-import { createClient } from '@supabase/supabase-js';
+import supabase from './lib/supabase';
+import ColumnSelection from './components/ColumnSelection';
+import Pagination from './components/Pagination';
+import SimplePagination from './components/SimplePagination';
 
 // Lazy load components that aren't needed immediately
 const PumpCurves = lazy(() => import('./components/PumpCurves'));
@@ -135,7 +138,12 @@ const translations = {
     // Warnings & Errors
     "Select Warning": "Please select Frequency and Phase to proceed.",
     "No Matches": "⚠️ No pumps match your criteria. Try adjusting the parameters.",
-    "No Data": "❌ No pump data available. Please check your data source."
+    "No Data": "❌ No pump data available. Please check your data source.",
+
+    // Pagination
+    "Rows per page:": "Rows per page:",
+    "Showing": "Showing",
+    "of": "of"
   },
   "繁體中文": {
     // App title and headers
@@ -251,7 +259,12 @@ const translations = {
     // Warnings & Errors
     "Select Warning": "請選擇頻率和相數以繼續。",
     "No Matches": "⚠️ 沒有符合您條件的幫浦。請調整參數。",
-    "No Data": "❌ 無可用幫浦資料。請檢查您的資料來源。"
+    "No Data": "❌ 無可用幫浦資料。請檢查您的資料來源。",
+
+    // Pagination
+    "Rows per page:": "每頁行數：",
+    "Showing": "顯示",
+    "of": "共"
   }
 };
 
@@ -304,11 +317,6 @@ const convertHeadToM = (value, fromUnit) => {
 
 const queryClient = new QueryClient();
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL, 
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
 const PumpSelectionApp = () => {
   // State management
   const [language, setLanguage] = useState("English");
@@ -351,6 +359,16 @@ const PumpSelectionApp = () => {
     // Add more columns as needed
   ]);
   const [showColumnSelection, setShowColumnSelection] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(100);
+
+  // Calculate paginated data
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return pumpData.slice(startIndex, startIndex + rowsPerPage);
+  }, [pumpData, currentPage, rowsPerPage]);
 
   // All available values for filters
   const [allCategories, setAllCategories] = useState([]);
@@ -520,6 +538,11 @@ const PumpSelectionApp = () => {
     // eslint-disable-next-line
   }, [autoTdh, headUnit]);
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [category, frequency, phase, flowValue, headValue]);
+
   // Reset function
   const resetInputs = () => {
     setCategory("");
@@ -599,6 +622,17 @@ const PumpSelectionApp = () => {
     flow: convertFlowFromLpm(convertFlowToLpm(flowValue, flowUnit), flowUnit),
     head: convertHeadFromM(convertHeadToM(headValue, headUnit), headUnit)
   };
+
+  // Add this near your other state variables (around line 370-380)
+  const [cachedAllColumns, setCachedAllColumns] = useState([]);
+
+  // Add this effect near your other useEffect hooks (around line 520-540)
+  // Only calculate allColumns once after data is loaded
+  useEffect(() => {
+    if (pumpData.length > 0 && cachedAllColumns.length === 0) {
+      setCachedAllColumns(Object.keys(pumpData[0] || {}).filter(col => col !== "DB ID"));
+    }
+  }, [pumpData, cachedAllColumns.length]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -937,74 +971,16 @@ const PumpSelectionApp = () => {
             </div>
 
             {/* Column Selection */}
-            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-              <button
-                onClick={() => setShowColumnSelection(!showColumnSelection)}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <h3 className="text-lg font-semibold">{getText("Column Selection", language)}</h3>
-                {showColumnSelection ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
-                )}
-              </button>
-              
-              {showColumnSelection && (
-                <div className="mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">
-                          {getText("Essential Columns", language)}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {essentialColumns.join(", ")}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setSelectedColumns([...optionalColumns])}
-                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                        >
-                          {getText("Select All", language)}
-                        </button>
-                        <button
-                          onClick={() => setSelectedColumns([])} // Keep the default columns
-                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
-                        >
-                          {getText("Deselect All", language)}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        {getText("Select Columns", language)}
-                      </h4>
-                      <div className="max-h-40 overflow-y-auto">
-                        {optionalColumns.map(col => (
-                          <label key={col} className="flex items-center space-x-2 mb-1">
-                            <input
-                              type="checkbox"
-                              checked={selectedColumns.includes(col)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedColumns(prev => [...prev, col]);
-                                } else {
-                                  setSelectedColumns(prev => prev.filter(c => c !== col));
-                                }
-                              }}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span className="text-sm text-gray-700">{col}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <ColumnSelection
+              showColumnSelection={showColumnSelection}
+              setShowColumnSelection={setShowColumnSelection}
+              selectedColumns={selectedColumns}
+              setSelectedColumns={setSelectedColumns}
+              getText={getText}
+              language={language}
+              essentialColumns={essentialColumns}
+              allColumns={cachedAllColumns}
+            />
 
             {/* Result Percentage Slider */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
@@ -1048,6 +1024,7 @@ const PumpSelectionApp = () => {
             <Suspense fallback={<div>Loading results...</div>}>
               <ResultsTable
                 pumpData={pumpData}
+                paginatedData={paginatedData}
                 isLoading={loading}
                 selectedPumps={selectedPumps}
                 togglePumpSelection={togglePumpSelection}
@@ -1058,6 +1035,24 @@ const PumpSelectionApp = () => {
                 convertFlowFromLpm={convertFlowFromLpm}
                 convertHeadFromM={convertHeadFromM}
               />
+              
+              {pumpData.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+                  <SimplePagination
+                    currentPage={currentPage}
+                    totalPages={Math.max(1, Math.ceil(pumpData.length / rowsPerPage))}
+                    onPageChange={setCurrentPage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={(value) => {
+                      setRowsPerPage(value);
+                      setCurrentPage(1);
+                    }}
+                    totalItems={pumpData.length}
+                    getText={getText}
+                    language={language}
+                  />
+                </div>
+              )}
             </Suspense>
 
             <Suspense fallback={<div>Loading pump curves...</div>}>
