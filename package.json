@@ -1,0 +1,35 @@
+{
+  "name": "pump-selector-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
+    "@tanstack/react-query": "^5.81.2",
+    "lucide-react": "^0.518.0",
+    "plotly.js": "^3.0.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-plotly.js": "^2.6.0",
+    "react-window": "^1.8.11",
+    "recharts": "^2.15.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.10",
+    "@vitejs/plugin-react": "^4.5.2",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "vite": "^6.3.5"
+  }
+}
