@@ -17,5 +17,18 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 1000 // (Optional) Increase warning limit to 1000 kB
+  },
+  define: {
+    // Provide polyfills needed by some libraries
+    global: 'window',
+    'process.env': {},
+  },
+  // Fix for the "buffer/" error
+  resolve: {
+    alias: {
+      // Important: No trailing slash here
+      buffer: 'buffer', // <-- no slash!
+      process: 'process/browser',
+    }
   }
 });

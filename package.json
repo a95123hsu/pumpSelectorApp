@@ -7,8 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "postinstall": "npm i @rollup/rollup-linux-x64-gnu --ignore-scripts || true"
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "",
@@ -17,8 +16,10 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
     "@tanstack/react-query": "^5.81.2",
+    "buffer": "^6.0.3",
     "lucide-react": "^0.518.0",
     "plotly.js": "^3.0.1",
+    "process": "^0.11.10",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-plotly.js": "^2.6.0",
@@ -26,6 +27,7 @@
     "recharts": "^2.15.3"
   },
   "devDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.44.0",
     "@tailwindcss/postcss": "^4.1.10",
     "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.0",

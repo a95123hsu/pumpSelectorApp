@@ -2,6 +2,8 @@ import React from 'react';
 import Plot from 'react-plotly.js';
 import { useAppContext } from '../context/AppContext';
 
+const Plotly = window.Plotly;
+
 const PumpCurveChart = ({ 
   modelNo, 
   pumpCurveData, 

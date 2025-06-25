@@ -1,3 +1,4 @@
+import './polyfills.js'; // Add this line at the very top
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import PumpSelectionApp from './App';
