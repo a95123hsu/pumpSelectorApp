@@ -610,7 +610,7 @@ const PumpSelectionApp = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <img 
-                    src="/images/logo.gif?v=${new Date().getTime()}" 
+                    src={`/images/logo.gif?v=${new Date().getTime()}`} 
                     alt="Hung Pump Logo" 
                     className="h-12"
                   />
