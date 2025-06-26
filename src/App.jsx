@@ -172,7 +172,7 @@ const translations = {
     "Column Selection": "📋 欄位選擇",
     "Select Columns": "選擇要在結果中顯示的欄位:",
     "Select All": "全選",
-    "Deselect All": "全部取消",
+    "Deselect All": "取消全選",
     "Essential Columns": "必要欄位 (總是顯示)",
     
     // Categories
@@ -362,7 +362,7 @@ const PumpSelectionApp = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(100);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   // Calculate paginated data
   const paginatedData = useMemo(() => {
@@ -634,6 +634,33 @@ const PumpSelectionApp = () => {
     }
   }, [pumpData, cachedAllColumns.length]);
 
+  // Add these functions in App.jsx where you have other pump selection functions
+  const selectAllPumpsOnPage = () => {
+    // Get all model numbers from the current page
+    const modelNos = paginatedData.map(pump => pump["Model No."]);
+    
+    // Add them to the selected pumps (avoiding duplicates)
+    setSelectedPumps(prev => {
+      const newSelection = [...prev];
+      modelNos.forEach(modelNo => {
+        if (!newSelection.includes(modelNo)) {
+          newSelection.push(modelNo);
+        }
+      });
+      return newSelection;
+    });
+  };
+
+  const deselectAllPumpsOnPage = () => {
+    // Get all model numbers from the current page
+    const modelNos = paginatedData.map(pump => pump["Model No."]);
+    
+    // Remove them from the selected pumps
+    setSelectedPumps(prev => 
+      prev.filter(modelNo => !modelNos.includes(modelNo))
+    );
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
@@ -744,8 +771,23 @@ const PumpSelectionApp = () => {
                     <input
                       type="number"
                       min="0"
-                      value={floors}
-                      onChange={(e) => setFloors(parseInt(e.target.value) || 0)}
+                      value={floors === '' ? '' : floors}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '') {
+                          setFloors('');
+                        } else {
+                          const parsed = parseInt(value);
+                          if (!isNaN(parsed)) {
+                            setFloors(parsed);
+                          }
+                        }
+                      }}
+                      onBlur={() => {
+                        if (floors === '' || isNaN(floors)) {
+                          setFloors(0);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -756,8 +798,23 @@ const PumpSelectionApp = () => {
                     <input
                       type="number"
                       min="0"
-                      value={faucets}
-                      onChange={(e) => setFaucets(parseInt(e.target.value) || 0)}
+                      value={faucets === '' ? '' : faucets}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '') {
+                          setFaucets('');
+                        } else {
+                          const parsed = parseInt(value);
+                          if (!isNaN(parsed)) {
+                            setFaucets(parsed);
+                          }
+                        }
+                      }}
+                      onBlur={() => {
+                        if (faucets === '' || isNaN(faucets)) {
+                          setFaucets(0);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -780,8 +837,23 @@ const PumpSelectionApp = () => {
                     type="number"
                     min="0"
                     step="0.1"
-                    value={pondLength}
-                    onChange={(e) => setPondLength(parseFloat(e.target.value) || 0)}
+                    value={pondLength === '' ? '' : pondLength}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setPondLength('');
+                      } else {
+                        const parsed = parseFloat(value);
+                        if (!isNaN(parsed)) {
+                          setPondLength(parsed);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      if (pondLength === '') {
+                        setPondLength(0);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -793,8 +865,23 @@ const PumpSelectionApp = () => {
                     type="number"
                     min="0"
                     step="0.1"
-                    value={pondWidth}
-                    onChange={(e) => setPondWidth(parseFloat(e.target.value) || 0)}
+                    value={pondWidth === '' ? '' : pondWidth}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setPondWidth('');
+                      } else {
+                        const parsed = parseFloat(value);
+                        if (!isNaN(parsed)) {
+                          setPondWidth(parsed);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      if (pondWidth === '') {
+                        setPondWidth(0);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -806,8 +893,23 @@ const PumpSelectionApp = () => {
                     type="number"
                     min="0"
                     step="0.1"
-                    value={pondHeight}
-                    onChange={(e) => setPondHeight(parseFloat(e.target.value) || 0)}
+                    value={pondHeight === '' ? '' : pondHeight}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setPondHeight('');
+                      } else {
+                        const parsed = parseFloat(value);
+                        if (!isNaN(parsed)) {
+                          setPondHeight(parsed);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      if (pondHeight === '') {
+                        setPondHeight(0);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -819,8 +921,23 @@ const PumpSelectionApp = () => {
                     type="number"
                     min="0.01"
                     step="0.1"
-                    value={drainTime}
-                    onChange={(e) => setDrainTime(parseFloat(e.target.value) || 0.01)}
+                    value={drainTime === '' ? '' : drainTime}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setDrainTime('');
+                      } else {
+                        const parsed = parseFloat(value);
+                        if (!isNaN(parsed)) {
+                          setDrainTime(parsed);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      if (drainTime === '' || isNaN(drainTime) || drainTime < 0.01) {
+                        setDrainTime(0.01); // Minimum value is 0.01
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -849,8 +966,23 @@ const PumpSelectionApp = () => {
                     type="number"
                     min="0"
                     step="0.1"
-                    value={undergroundDepth}
-                    onChange={(e) => setUndergroundDepth(parseFloat(e.target.value) || 0)}
+                    value={undergroundDepth === '' ? '' : undergroundDepth}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setUndergroundDepth('');
+                      } else {
+                        const parsed = parseFloat(value);
+                        if (!isNaN(parsed)) {
+                          setUndergroundDepth(parsed);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      if (undergroundDepth === '' || isNaN(undergroundDepth)) {
+                        setUndergroundDepth(0);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -862,8 +994,23 @@ const PumpSelectionApp = () => {
                     type="number"
                     min="0"
                     step="1"
-                    value={particleSize}
-                    onChange={(e) => setParticleSize(parseFloat(e.target.value) || 0)}
+                    value={particleSize === '' ? '' : particleSize}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setParticleSize('');
+                      } else {
+                        const parsed = parseFloat(value);
+                        if (!isNaN(parsed)) {
+                          setParticleSize(parsed);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      if (particleSize === '' || isNaN(particleSize)) {
+                        setParticleSize(0);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -904,8 +1051,23 @@ const PumpSelectionApp = () => {
                   type="number"
                   min="0"
                   step="10"
-                  value={flowValue}
-                  onChange={(e) => setFlowValue(parseFloat(e.target.value) || 0)}
+                  value={flowValue === '' ? '' : flowValue}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setFlowValue('');
+                    } else {
+                      const parsed = parseFloat(value);
+                      if (!isNaN(parsed)) {
+                        setFlowValue(parsed);
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    if (flowValue === '') {
+                      setFlowValue(0);
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -940,8 +1102,23 @@ const PumpSelectionApp = () => {
                   type="number"
                   min="0"
                   step="1"
-                  value={headValue}
-                  onChange={(e) => setHeadValue(parseFloat(e.target.value) || 0)}
+                  value={headValue === '' ? '' : headValue}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setHeadValue('');
+                    } else {
+                      const parsed = parseFloat(value);
+                      if (!isNaN(parsed)) {
+                        setHeadValue(parsed);
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    if (headValue === '') {
+                      setHeadValue(0);
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1028,6 +1205,8 @@ const PumpSelectionApp = () => {
                 isLoading={loading}
                 selectedPumps={selectedPumps}
                 togglePumpSelection={togglePumpSelection}
+                selectAllPumpsOnPage={selectAllPumpsOnPage}
+                deselectAllPumpsOnPage={deselectAllPumpsOnPage}
                 essentialColumns={essentialColumns}
                 selectedColumns={selectedColumns}
                 flowUnit={flowUnit}

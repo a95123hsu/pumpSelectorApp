@@ -7,6 +7,8 @@ const ResultsTable = ({
   isLoading = false,
   selectedPumps = [],
   togglePumpSelection,
+  selectAllPumpsOnPage,
+  deselectAllPumpsOnPage,
   essentialColumns = [],
   selectedColumns = [],
   flowUnit = "L/min",
@@ -220,6 +222,22 @@ const ResultsTable = ({
       <p className="text-sm text-gray-600 mb-4">
         {getText("Found Pumps", language, { count: pumpData.length })}
       </p>
+
+      {/* Select/Deselect All Buttons */}
+      <div className="flex space-x-2 mb-2">
+        <button
+          onClick={selectAllPumpsOnPage}
+          className="px-3 py-1 text-sm bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100"
+        >
+          {getText("Select All", language)}
+        </button>
+        <button
+          onClick={deselectAllPumpsOnPage}
+          className="px-3 py-1 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100"
+        >
+          {getText("Deselect All", language)}
+        </button>
+      </div>
 
       {/* Single scrollable container */}
       <div className="overflow-x-auto border rounded-md" ref={containerRef}>

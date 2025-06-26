@@ -22,6 +22,8 @@ const SimplePagination = ({
           onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
           className="px-2 py-1 border border-gray-300 rounded-md text-sm"
         >
+          <option value={15}>15</option>
+          <option value={25}>25</option>
           <option value={50}>50</option>
           <option value={100}>100</option>
           <option value={250}>250</option>
