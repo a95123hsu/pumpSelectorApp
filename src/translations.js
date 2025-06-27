@@ -12,6 +12,7 @@ const translations = {
     "Search": "Search",
     "Show Curve": "Show Pump Curve",
     "Update Curves": "Update Curves",
+    "Export CSV": "Export CSV",
     
     // Step 1
     "Step 1": "Select Basic Criteria",
@@ -96,10 +97,29 @@ const translations = {
     "Compare Pumps": "Compare Selected Pumps",
     
     // Column headers
+    "Select": "Select",
+    "Model No.": "Model No.",
     "Q Rated/LPM": "Q Rated/LPM",
     "Q Rated": "Q Rated ({unit})",
     "Head Rated/M": "Head Rated/M",
     "Head Rated": "Head Rated ({unit})",
+    "Frequency_Hz": "Frequency (Hz)",
+    "Phase": "Phase:",
+    "Category": "Category:",
+    "Product Link": "Product Link",
+    "HP": "HP",
+    "Power(KW)": "Power (KW)",
+    "Current_A": "Current (A)",
+    "Weight_kg": "Weight (kg)",
+    "Outlet (mm)": "Outlet (mm)",
+    "Outlet (inch)": "Outlet (inch)",
+    "Pass Solid Dia(mm)": "Pass Solid Dia (mm)",
+    "Max_Particle_Size_mm": "Max Particle Size (mm)",
+    "Efficiency": "Efficiency (%)",
+    "Max Head(M)": "Max Head (M)",
+    "Max Flow (LPM)": "Max Flow (LPM)",
+    "Max Head (ft)": "Max Head (ft)",
+    "Series": "Series",
     
     // Flow units
     "L/min": "L/min",
@@ -115,7 +135,17 @@ const translations = {
     // Warnings & Errors
     "Select Warning": "Please select Frequency and Phase to proceed.",
     "No Matches": "No pumps match your criteria. Try adjusting the parameters.",
-    "No Data": "No pump data available. Please check your data source."
+    "No Data": "No pump data available. Please check your data source.",
+    "max head (m)": "Max Head (M)",
+    
+    // Pagination UI
+    "Rows per page:": "Rows per page:",
+    "Showing": "Showing",
+    "of": "of",
+    "Previous": "Previous",
+    "Next": "Next",
+    "Page": "Page",
+    "Flow": "Flow"
   },
   "繁體中文": {
     // App title and headers
@@ -129,6 +159,7 @@ const translations = {
     "Search": "搜尋",
     "Show Curve": "顯示泵浦曲線",
     "Update Curves": "更新曲線",
+    "Export CSV": "匯出CSV",
     
     // Step 1
     "Step 1": "選擇基本條件",
@@ -213,10 +244,29 @@ const translations = {
     "Compare Pumps": "比較選定的幫浦",
     
     // Column headers
-    "Q Rated/LPM": "額定流量 (LPM)",
+    "Select": "選擇",
+    "Model No.": "型號",
+    "Q Rated/LPM": "額定流量 (公升/分鐘)",
     "Q Rated": "額定流量 ({unit})",
-    "Head Rated/M": "額定揚程 (M)",
+    "Head Rated/M": "額定揚程 (米)",
     "Head Rated": "額定揚程 ({unit})",
+    "Frequency_Hz": "頻率 (赫茲)",
+    "Phase": "相數:",
+    "Category": "類別:",
+    "Product Link": "產品連結",
+    "HP": "馬力 (HP)",
+    "Power(KW)": "功率 (千瓦)",
+    "Current_A": "電流 (安培)",
+    "Weight_kg": "重量 (公斤)",
+    "Outlet (mm)": "出水口徑 (毫米)",
+    "Outlet (inch)": "出水口徑 (英吋)",
+    "Pass Solid Dia(mm)": "可通過固體直徑 (毫米)",
+    "Max_Particle_Size_mm": "最大顆粒尺寸 (毫米)",
+    "Efficiency": "效率 (%)",
+    "Max Head (M)": "最大揚程 (米)",
+    "Max Flow (LPM)": "最大流量 (公升/分鐘)",
+    "Max Head (ft)": "最大揚程 (英尺)",
+    "Series": "系列",
     
     // Flow units
     "L/min": "公升/分鐘",
@@ -232,7 +282,17 @@ const translations = {
     // Warnings & Errors
     "Select Warning": "請選擇頻率和相數以繼續。",
     "No Matches": "沒有符合您條件的幫浦。請調整參數。",
-    "No Data": "無可用幫浦資料。請檢查您的資料來源。"
+    "No Data": "無可用幫浦資料。請檢查您的資料來源。",
+    "max head (m)": "最大揚程 (米)",
+    
+    // Pagination UI
+    "Rows per page:": "每頁顯示行數:",
+    "Showing": "顯示",
+    "of": "共",
+    "Previous": "上一頁",
+    "Next": "下一頁",
+    "Page": "頁次",
+    "Flow": "流量"
   }
 };
 

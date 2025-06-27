@@ -40,7 +40,7 @@ const ColumnSelection = ({
                   {getText("Essential Columns", language)}
                 </h4>
                 <p className="text-sm text-gray-500">
-                  {essentialColumns.join(", ")}
+                  {essentialColumns.map(col => getText(col, language)).join(", ")}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -77,7 +77,7 @@ const ColumnSelection = ({
                       }}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">{col}</span>
+                    <span className="text-sm text-gray-700">{getText(col, language)}</span>
                   </label>
                 ))}
               </div>

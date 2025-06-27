@@ -1,11 +1,19 @@
-import React, { createContext, useState, useContext, useMemo } from 'react';
+import React, { createContext, useState, useContext, useMemo, useEffect } from 'react';
 // Use default import syntax
 import translations from '../translations';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [language, setLanguage] = useState("English");
+  // Load language from localStorage if available
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('language') || "English";
+  });
+
+  // Persist language to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
 
   // Memoize the getText function to prevent unnecessary re-renders
   const getText = useMemo(() => {

@@ -42,11 +42,11 @@ const SimplePagination = ({
           disabled={currentPage === 1}
           className="px-3 py-1 rounded border text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Previous
+          {getText ? getText("Previous", language) : "Previous"}
         </button>
         
         <span className="px-3 py-1">
-          Page {currentPage} of {totalPages}
+          {getText ? getText("Page", language) : "Page"} {currentPage} {getText ? getText("of", language) : "of"} {totalPages}
         </span>
         
         <button
@@ -54,7 +54,7 @@ const SimplePagination = ({
           disabled={currentPage === totalPages}
           className="px-3 py-1 rounded border text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Next
+          {getText ? getText("Next", language) : "Next"}
         </button>
       </div>
     </div>

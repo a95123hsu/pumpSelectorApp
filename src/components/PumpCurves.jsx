@@ -48,7 +48,7 @@ const PumpCurves = (props) => {
                   name: modelNo,
                   line: { color: colors[index % colors.length], width: 3, shape: 'spline' },
                   marker: { size: 8 },
-                  hovertemplate: 'Flow: %{x:.0f}<br>Head: %{y:.0f}<extra></extra>',
+                  hovertemplate: `${getText("Flow", language, { unit: getText(flowUnit, language) })}: %{x:.0f}<br>${getText("Head", language, { unit: getText(headUnit, language) })}: %{y:.0f}<extra></extra>`,
                 };
               }).concat(
                 (operatingPoint.flow > 0 && operatingPoint.head > 0)

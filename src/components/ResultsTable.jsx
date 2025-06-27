@@ -100,15 +100,20 @@ const ResultsTable = ({
   // Start with essential columns and checkbox
   let allColumns = [
     // Special column for checkboxes
-    { id: 'select', label: 'Select', width: '70px', special: true, sortable: false },
-    
+    { id: 'select', label: getText('Select', language), width: '70px', special: true, sortable: false },
     // Essential columns (dynamic from props)
     ...essentialColumns.map(col => ({ 
       id: col, 
-      label: col, 
+      label: getText(col, language), 
       width: '160px',
       sortable: true,
-      render: (pump) => pump[col]
+      render: (pump) => {
+        // Translate category values
+        if (col === 'Category' && pump[col]) return getText(pump[col], language);
+        // Translate phase if you have translations
+        if (col === 'Phase' && pump[col]) return getText(pump[col], language);
+        return pump[col];
+      }
     }))
   ];
   
@@ -141,20 +146,27 @@ const ResultsTable = ({
     col => col !== "Q Rated/LPM" && col !== "Head Rated/M"
   ).map(col => ({ 
     id: col, 
-    label: col, 
+    label: getText(col, language), 
     width: '160px',
     sortable: col !== "Product Link", // Don't make links sortable
     sortKey: col,
-    render: (pump) => col === "Product Link" && pump[col] ? (
-      <a 
-        href={pump[col]} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-blue-600 hover:text-blue-800 underline"
-      >
-        {getText("View Product", language)}
-      </a>
-    ) : (pump[col] || "-")
+    render: (pump) => {
+      if (col === 'Category' && pump[col]) return getText(pump[col], language);
+      if (col === 'Phase' && pump[col]) return getText(pump[col], language);
+      if (col === "Product Link" && pump[col]) {
+        return (
+          <a 
+            href={pump[col]} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline"
+          >
+            {getText("View Product", language)}
+          </a>
+        );
+      }
+      return pump[col] || "-";
+    }
   }));
   
   // Add other columns to the list
@@ -223,7 +235,7 @@ const ResultsTable = ({
         {getText("Found Pumps", language, { count: pumpData.length })}
       </p>
 
-      {/* Select/Deselect All Buttons */}
+      {/* Select/Deselect All + Export CSV Buttons */}
       <div className="flex space-x-2 mb-2">
         <button
           onClick={selectAllPumpsOnPage}
@@ -236,6 +248,44 @@ const ResultsTable = ({
           className="px-3 py-1 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100"
         >
           {getText("Deselect All", language)}
+        </button>
+        <button
+          onClick={() => {
+            // Get columns to export (excluding 'select' special column)
+            const exportColumns = allColumns.filter(col => col.id !== 'select');
+            // Get selected pump data
+            const selectedRows = pumpData.filter(pump => selectedPumps.includes(pump["Model No."]));
+            // Build CSV header (translated)
+            const header = exportColumns.map(col => col.label).join(",");
+            // Build CSV rows
+            const rows = selectedRows.map(pump =>
+              exportColumns.map(col => {
+                if (col.id === "Product Link") {
+                  return `"${String(pump[col.id] ?? '').replace(/"/g, '""')}"`;
+                }
+                // Use render if available, else raw value
+                if (col.render) {
+                  // Remove units from rendered value for CSV
+                  return `"${String(col.render(pump)).replace(/\s*\([^)]*\)/g, '').replace(/"/g, '""')}"`;
+                }
+                return `"${String(pump[col.id] ?? '').replace(/"/g, '""')}"`;
+              }).join(",")
+            );
+            const csvContent = [header, ...rows].join("\r\n");
+            // Add UTF-8 BOM for Excel compatibility with Chinese
+            const bom = '\uFEFF';
+            const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'selected_pumps.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+          className="px-3 py-1 text-sm bg-green-50 text-green-700 border border-green-200 rounded hover:bg-green-100"
+        >
+          {getText("Export CSV", language)}
         </button>
       </div>
 
@@ -304,4 +354,4 @@ const ResultsTable = ({
   );
 };
 
-export default React.memo(ResultsTable);
+export default ResultsTable;
