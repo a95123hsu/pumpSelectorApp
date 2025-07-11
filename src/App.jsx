@@ -217,10 +217,14 @@ const AppContent = () => {
 
     // Only filter if user has entered a value
     let filtered = pumpRows;
-    if (requiredFlowLpm > 0) {
+    if (requiredFlowLpm > 0&&requiredHeadM > 0) {
+      filtered = filtered.filter(pump => pump["Q Rated/LPM"] >= requiredFlowLpm);
+      filtered = filtered.filter(pump => pump["Head Rated/M"] >= requiredHeadM);
+    }
+    else if (requiredFlowLpm > 0) {
       filtered = filtered.filter(pump => pump["Q Rated/LPM"] >= requiredFlowLpm);
     }
-    if (requiredHeadM > 0) {
+    else if (requiredHeadM > 0) {
       filtered = filtered.filter(pump => pump["Head Rated/M"] >= requiredHeadM);
     }
 
