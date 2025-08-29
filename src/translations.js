@@ -2,7 +2,7 @@
 const translations = {
   "English": {
     // App title and headers
-    "Hung Pump": "Hung Pump",
+    "Hung Pump": "Hung Pump Group",
     "Pump Selection Tool": "Pump Selection Tool",
     "Data loaded": "Data loaded: {n_records} records | Last update: {timestamp}",
     
@@ -15,7 +15,7 @@ const translations = {
     "Export CSV": "Export CSV",
     
     // Step 1
-    "Step 1": "Select Basic Criteria",
+    "Step 1": "Select Basic Criteria (Optional)",
     "Category": "Category:",
     "Frequency": "Frequency (Hz):",
     "Phase": "Phase:",
@@ -25,7 +25,7 @@ const translations = {
     "Show All Phase": "Show All Phase",
     
     // Column Selection
-    "Column Selection": "Column Selection",
+    "Column Selection": "Column Selection (Optional)",
     "Select Columns": "Select columns to display in results:",
     "Select All": "Select All",
     "Deselect All": "Deselect All",
@@ -43,13 +43,13 @@ const translations = {
     "BLDC": "BLDC",
     
     // Application section
-    "Application Input": "Application Input",
+    "Application Input": "Application Input (Optional)",
     "Floor Faucet Info": "Each floor = 3.5 m TDH | Each faucet = 15 LPM",
     "Number of Floors": "Number of Floors",
     "Number of Faucets": "Number of Faucets",
     
     // Pond drainage
-    "Pond Drainage": "Pond Drainage",
+    "Pond Drainage": "Pond Drainage (Optional)",
     "Pond Length": "Pond Length (m)",
     "Pond Width": "Pond Width (m)",
     "Pond Height": "Pond Height (m)",
@@ -62,7 +62,7 @@ const translations = {
     "Particle Size": "Max Particle Size (mm)",
     
     // Manual Input
-    "Manual Input": "Manual Input",
+    "Manual Input": "Manual Input (Optional)",
     "Flow Unit": "Flow Unit",
     "Flow Value": "Flow Value",
     "Head Unit": "Head Unit",
@@ -162,7 +162,7 @@ const translations = {
     "Export CSV": "匯出CSV",
     
     // Step 1
-    "Step 1": "選擇基本條件",
+    "Step 1": "選擇基本條件 (選填)",
     "Category": "類別:",
     "Frequency": "頻率 (赫茲):",
     "Phase": "相數:",
@@ -172,7 +172,7 @@ const translations = {
     "Show All Phase": "顯示所有相數",
     
     // Column Selection
-    "Column Selection": "欄位選擇",
+    "Column Selection": "欄位選擇 (選填)",
     "Select Columns": "選擇要在結果中顯示的欄位:",
     "Select All": "全選",
     "Deselect All": "全部取消",
@@ -190,13 +190,13 @@ const translations = {
     "BLDC": "無刷直流泵",
     
     // Application section
-    "Application Input": "應用輸入",
+    "Application Input": "應用輸入 (選填)",
     "Floor Faucet Info": "每樓層 = 3.5 米揚程 | 每水龍頭 = 15 LPM",
     "Number of Floors": "樓層數量",
     "Number of Faucets": "水龍頭數量",
     
     // Pond drainage
-    "Pond Drainage": "池塘排水",
+    "Pond Drainage": "池塘排水 (選填)",
     "Pond Length": "池塘長度 (米)",
     "Pond Width": "池塘寬度 (米)",
     "Pond Height": "池塘高度 (米)",
@@ -209,7 +209,7 @@ const translations = {
     "Particle Size": "最大固體顆粒尺寸 (毫米)",
     
     // Manual Input
-    "Manual Input": "手動輸入",
+    "Manual Input": "手動輸入 (選填)",
     "Flow Unit": "流量單位",
     "Flow Value": "流量值",
     "Head Unit": "揚程單位",

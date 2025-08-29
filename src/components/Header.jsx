@@ -7,11 +7,13 @@ const Header = ({ language, setLanguage, getText }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex-shrink-0">
-              <img 
-                src={`/images/logo.gif?v=${new Date().getTime()}`}
-                alt="Hung Pump Logo" 
-                className="h-12 md:h-16 object-contain" 
-              />
+              <a href="https://www.hungpump.com/" tabIndex={0} aria-label="Go to homepage">
+                <img 
+                  src={`/images/logo.gif?v=${new Date().getTime()}`}
+                  alt="Hung Pump Logo" 
+                  className="h-12 md:h-16 object-contain" 
+                />
+              </a>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-blue-700">
               {getText("Hung Pump", language)}

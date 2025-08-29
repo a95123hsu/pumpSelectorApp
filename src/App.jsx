@@ -420,11 +420,13 @@ const AppContent = () => {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <img 
-                src={`/images/logo.gif?v=${new Date().getTime()}`} 
-                alt="Hung Pump Logo" 
-                className="h-12"
-              />
+              <a href="https://www.hungpump.com/" tabIndex={0} aria-label="Go to homepage">
+                <img 
+                  src={`/images/logo.gif?v=${new Date().getTime()}`}
+                  alt="Hung Pump Logo" 
+                  className="h-12 md:h-16 object-contain" 
+                />
+              </a>
               <h1 className="text-2xl font-bold text-blue-700">
                 {getText("Hung Pump", language)}
               </h1>
