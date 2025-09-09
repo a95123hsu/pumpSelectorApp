@@ -74,7 +74,8 @@ const AppContent = () => {
   const [dataTimestamp, setDataTimestamp] = React.useState(null);
 
   // Filter states
-  const [category, setCategory] = React.useState("");
+ const [selectedCategory, setSelectedCategory] = React.useState("");
+
   const [frequency, setFrequency] = React.useState("");
   const [phase, setPhase] = React.useState("");
 
@@ -123,19 +124,6 @@ const AppContent = () => {
   const [allFrequencies, setAllFrequencies] = React.useState([]);
   const [allPhases, setAllPhases] = React.useState([]);
 
-  // Hardcoded categories list
-  const HARDCODED_CATEGORIES = [
-    "BLDC",
-    "Booster",
-    "Clean Water",
-    "Construction",
-    "Dirty Water",
-    "Grinder",
-    "High Pressure",
-    "Sewage and Wastewater",
-    "Speciality Pump"
-  ];
-
   // Hardcoded frequency list
   const HARDCODED_FREQUENCIES = [
     "50",
@@ -180,96 +168,152 @@ const AppContent = () => {
     return { data: allRows };
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+const fetchData = async () => {
+  setLoading(true);
+  try {
+    // Base select always fetches categories for display
+    let base = supabase
+      .from("pump_selection_data")
+      .select(`
+        *,
+        product_categories (
+          category_id,
+          categories ( name )
+        )
+      `);
 
-    // Build filters for Supabase
-    const filters = {};
-    if (category && category !== getText("All Categories", language)) {
-      filters["Category"] = category;
+    // When a category is picked, use an inner join + equality on that category id
+    if (selectedCategory) {
+      base = supabase
+        .from("pump_selection_data")
+        .select(`
+          *,
+          product_categories!inner (
+            category_id,
+            categories ( name )
+          )
+        `)
+        .eq("product_categories.category_id", selectedCategory);
     }
+
+    // Frequency & Phase filters
     if (frequency && frequency !== getText("Show All Frequency", language)) {
-      filters["Frequency_Hz"] = Number(frequency);
+      base = base.eq("Frequency_Hz", Number(frequency));
     }
     if (phase && phase !== getText("Show All Phase", language)) {
-      if (HARDCODED_PHASES.includes(phase)) {
-        filters["Phase"] = phase;
+      const phaseNum = Number(phase);
+      if (!Number.isNaN(phaseNum)) base = base.eq("Phase", phaseNum);
+    }
+
+    const { data: rawRows, error: pumpError } = await base;
+    if (pumpError) throw pumpError;
+
+    // De-dupe by product id (just in case)
+    const byId = new Map();
+    for (const row of rawRows || []) {
+      const id = row.id;
+      const catNames = (row.product_categories || [])
+        .map(pc => pc?.categories?.name)
+        .filter(Boolean);
+
+      if (!byId.has(id)) {
+        byId.set(id, {
+          ...row,
+          Category: Array.from(new Set(catNames)).join(", "),
+          _categoryNames: Array.from(new Set(catNames)),
+        });
+      } else {
+        const existing = byId.get(id);
+        const merged = Array.from(new Set([...(existing._categoryNames || []), ...catNames]));
+        existing._categoryNames = merged;
+        existing.Category = merged.join(", ");
       }
     }
 
-    // Fetch all pump data in batches
-    const { data: pumpRows, error: pumpError } = await fetchAllRows('pump_selection_data', filters);
+    let pumpRows = Array.from(byId.values());
 
-    // Fetch all curve data in batches
-    const { data: curveRows, error: curveError } = await fetchAllRows('pump_curve_data');
-
-    if (pumpError || curveError) {
-      setPumpData([]);
-      setCurveData([]);
-      setLoading(false);
-      return;
-    }
-
-    // --- CLIENT-SIDE FILTRATION BASED ON FLOW/HEAD ---
-    // Use flowValue/headValue (manual input or auto-calculated)
+    // Client-side flow/head filters
     const requiredFlowLpm = convertFlowToLpm(flowValue, flowUnit);
     const requiredHeadM = convertHeadToM(headValue, headUnit);
 
-    // Only filter if user has entered a value
-    let filtered = pumpRows;
-    if (requiredFlowLpm > 0&&requiredHeadM > 0) {
-      filtered = filtered.filter(pump => pump["Q Rated/LPM"] >= requiredFlowLpm);
-      filtered = filtered.filter(pump => pump["Head Rated/M"] >= requiredHeadM);
+    if (requiredFlowLpm > 0) {
+      pumpRows = pumpRows.filter(p => p["Q Rated/LPM"] >= requiredFlowLpm);
     }
-    else if (requiredFlowLpm > 0) {
-      filtered = filtered.filter(pump => pump["Q Rated/LPM"] >= requiredFlowLpm);
-    }
-    else if (requiredHeadM > 0) {
-      filtered = filtered.filter(pump => pump["Head Rated/M"] >= requiredHeadM);
+    if (requiredHeadM > 0) {
+      pumpRows = pumpRows.filter(p => p["Head Rated/M"] >= requiredHeadM);
     }
 
-    // --- RESULT DISPLAY CONTROL: Show top X% of results ---
-    let percent = resultPercent || 100;
+    // Top X% by closeness
+    let filtered = pumpRows;
+    const rf = requiredFlowLpm || 1;
+    const rh = requiredHeadM || 1;
+    const percent = resultPercent || 100;
+
     if (percent < 100 && filtered.length > 0) {
-      // Sort by how close the pump is to the required flow/head (prioritize smallest excess)
       filtered = filtered
-        .map(pump => ({
-          ...pump,
-          _score: (
-            Math.abs((pump["Q Rated/LPM"] - requiredFlowLpm) / (requiredFlowLpm || 1)) +
-            Math.abs((pump["Head Rated/M"] - requiredHeadM) / (requiredHeadM || 1))
-          )
+        .map(p => ({
+          ...p,
+          _score:
+            Math.abs((p["Q Rated/LPM"] - requiredFlowLpm) / rf) +
+            Math.abs((p["Head Rated/M"] - requiredHeadM) / rh),
         }))
         .sort((a, b) => a._score - b._score)
         .slice(0, Math.ceil(filtered.length * percent / 100));
     }
 
+    // Curves
+    const { data: curveRows, error: curveError } = await supabase
+      .from("pump_curve_data")
+      .select("*");
+    if (curveError) throw curveError;
+
     setPumpData(filtered);
     setCurveData(curveRows || []);
     setDataTimestamp(new Date().toLocaleString());
+  } catch (err) {
+    console.error(err);
+    setPumpData([]);
+    setCurveData([]);
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
+
 
   // Fetch all unique categories, frequencies, and phases for filter options
-  useEffect(() => {
-    // Only set categories and frequencies from hardcoded lists
-    setAllCategories(HARDCODED_CATEGORIES);
-    setAllFrequencies(HARDCODED_FREQUENCIES);
-    setAllPhases(HARDCODED_PHASES);
-  }, []);
+useEffect(() => {
+  (async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name')
+      .order('name');
+    if (!error) setAllCategories(data || []);
+    setAllFrequencies(["50","60"]);
+    setAllPhases(["1","3"]);
+  })();
+}, []);
+
 
   // Calculated values
   const pondVolume = pondLength * pondWidth * pondHeight * 1000;
   const drainTimeMin = drainTime * 60;
   const pondLpm = pondVolume / drainTimeMin || 0;
+// Detect Booster by name → id match
+const isBooster = (() => {
+  const booster = allCategories.find(c => c.name === 'Booster');
+  return booster ? String(booster.id) === String(selectedCategory) : false;
+})();
 
-  const autoFlow = category === "Booster" ? Math.max(faucets * 15, pondLpm) : pondLpm;
-  const autoTdh = category === "Booster" ? Math.max(floors * 3.5, pondHeight) :
-    (undergroundDepth > 0 ? undergroundDepth : pondHeight);
+
+  const autoFlow = isBooster ? Math.max(faucets * 15, pondLpm) : pondLpm;
+const autoTdh  = isBooster ? Math.max(floors * 3.5, pondHeight)
+                           : (undergroundDepth > 0 ? undergroundDepth : pondHeight);
+
 
   // Available columns for selection
   const essentialColumns = ["Model No."];
-  const allColumns = Object.keys(pumpData[0] || {}).filter(col => col !== "DB ID");
+  const allColumns = Object.keys(pumpData[0] || {}).filter(col => col !== "DB ID" && col !== "id" && col !== "product_categories" && col !== "_categoryNames");
 
   // Use useMemo for optionalColumns to prevent recalculation on every render
   const optionalColumns = useMemo(() => {
@@ -291,13 +335,15 @@ const AppContent = () => {
   }, [autoTdh, headUnit]);
 
   // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [category, frequency, phase, flowValue, headValue]);
+useEffect(() => {
+  setCurrentPage(1);
+}, [selectedCategory, frequency, phase, flowValue, headValue]);
+
+
 
   // Reset function
   const resetInputs = () => {
-    setCategory("");
+    setSelectedCategories("");
     setFrequency("");
     setPhase("");
     setFloors(0);
@@ -382,7 +428,7 @@ const AppContent = () => {
   // Only calculate allColumns once after data is loaded
   useEffect(() => {
     if (pumpData.length > 0 && cachedAllColumns.length === 0) {
-      setCachedAllColumns(Object.keys(pumpData[0] || {}).filter(col => col !== "DB ID"));
+  setCachedAllColumns(Object.keys(pumpData[0] || {}).filter(col => col !== "DB ID" && col !== "id" && col !== "product_categories" && col !== "_categoryNames"));
     }
   }, [pumpData, cachedAllColumns.length]);
 
@@ -462,21 +508,26 @@ const AppContent = () => {
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <h3 className="text-lg font-semibold mb-4">{getText("Step 1", language)}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {getText("Category", language)}
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">{getText("All Categories", language)}</option>
-                {allCategories.map(cat => (
-                  <option key={cat} value={cat}>{getText(cat, language)}</option>
-                ))}
-              </select>
-            </div>
+<div>
+  <label className="block text_sm font-medium text-gray-700 mb-2">
+    {getText("Category", language)}
+  </label>
+  <select
+    value={selectedCategory}
+    onChange={(e) => setSelectedCategory(e.target.value)}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="">{getText("All Categories", language)}</option>
+    {allCategories.map((cat) => (
+      <option key={cat.id} value={String(cat.id)}>
+        {getText(cat.name, language)}
+      </option>
+    ))}
+  </select>
+</div>
+
+
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {getText("Frequency", language)}
@@ -511,7 +562,7 @@ const AppContent = () => {
         </div>
 
         {/* Application Inputs */}
-        {category === "Booster" && (
+        {isBooster&& (
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
             <h3 className="text-lg font-semibold mb-4">{getText("Application Input", language)}</h3>
             <p className="text-sm text-gray-600 mb-4">{getText("Floor Faucet Info", language)}</p>
@@ -875,7 +926,7 @@ const AppContent = () => {
           </div>
 
           {/* Estimated Application for Booster */}
-          {category === "Booster" && (flowValue > 0 || headValue > 0) && (
+          {isBooster && (flowValue > 0 || headValue > 0) && (
             <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
               <h4 className="text-sm font-semibold text-yellow-800 mb-2">
                 {getText("Estimated Application", language)}
