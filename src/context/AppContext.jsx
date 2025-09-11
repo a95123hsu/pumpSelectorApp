@@ -5,14 +5,29 @@ import translations from '../translations';
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  // Load language from localStorage if available
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem('language') || "English";
-  });
+  // Helper to get default language from URL
+  const getDefaultLanguage = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('lang') === 'zh') return '繁體中文';
+    if (params.get('lang') === 'en') return 'English';
+    return localStorage.getItem('language') || 'English';
+  };
 
-  // Persist language to localStorage whenever it changes
+  // Load language from URL or localStorage
+  const [language, setLanguage] = useState(getDefaultLanguage);
+
+  // Persist language to localStorage and update URL whenever it changes
   useEffect(() => {
     localStorage.setItem('language', language);
+    // Update URL query parameter
+    const params = new URLSearchParams(window.location.search);
+    if (language === '繁體中文') {
+      params.set('lang', 'zh');
+    } else {
+      params.set('lang', 'en');
+    }
+    const newUrl = window.location.pathname + '?' + params.toString();
+    window.history.replaceState({}, '', newUrl);
   }, [language]);
 
   // Memoize the getText function to prevent unnecessary re-renders

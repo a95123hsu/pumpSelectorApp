@@ -103,11 +103,24 @@ const ResultsTable = ({
     { id: 'select', label: getText('Select', language), width: '70px', special: true, sortable: false },
     // Essential columns (dynamic from props)
     ...essentialColumns.map(col => ({ 
-      id: col, 
-      label: getText(col, language), 
+      id: col,
+      label: getText(col, language),
       width: '160px',
       sortable: true,
       render: (pump) => {
+        // Make Model No. clickable if Product Link exists
+        if (col === 'Model No.' && pump['Product Link']) {
+          return (
+            <a
+              href={pump['Product Link']}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              {pump[col]}
+            </a>
+          );
+        }
         // Translate category values
         if (col === 'Category' && pump[col]) return getText(pump[col], language);
         // Translate phase if you have translations
@@ -142,11 +155,16 @@ const ResultsTable = ({
   }
   
   // Add other selected columns
-  const otherColumns = selectedColumns.filter(
-    col => col !== "Q Rated/LPM" && col !== "Head Rated/M"
-  ).map(col => ({ 
-    id: col, 
-    label: getText(col, language), 
+  // Ensure Category and Product Link are always last
+  const alwaysLast = ["Category", "Product Link"];
+  const orderedSelected = selectedColumns.filter(
+    col => col !== "Q Rated/LPM" && col !== "Head Rated/M" && !alwaysLast.includes(col)
+  );
+  const lastColumns = selectedColumns.filter(col => alwaysLast.includes(col));
+
+  const otherColumns = [...orderedSelected, ...lastColumns].map(col => ({
+    id: col,
+    label: getText(col, language),
     width: '160px',
     sortable: col !== "Product Link", // Don't make links sortable
     sortKey: col,
@@ -155,9 +173,9 @@ const ResultsTable = ({
       if (col === 'Phase' && pump[col]) return getText(pump[col], language);
       if (col === "Product Link" && pump[col]) {
         return (
-          <a 
-            href={pump[col]} 
-            target="_blank" 
+          <a
+            href={pump[col]}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-800 underline"
           >
@@ -168,7 +186,7 @@ const ResultsTable = ({
       return pump[col] || "-";
     }
   }));
-  
+
   // Add other columns to the list
   allColumns = [...allColumns, ...otherColumns];
   
@@ -262,6 +280,10 @@ const ResultsTable = ({
               exportColumns.map(col => {
                 if (col.id === "Product Link") {
                   return `"${String(pump[col.id] ?? '').replace(/"/g, '""')}"`;
+                }
+                // For Model No., always output the plain value
+                if (col.id === "Model No.") {
+                  return `"${String(pump["Model No."] ?? '').replace(/"/g, '""')}"`;
                 }
                 // Use render if available, else raw value
                 if (col.render) {
