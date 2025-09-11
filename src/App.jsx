@@ -65,7 +65,7 @@ const convertHeadToM = (value, fromUnit) => {
 
 
 const AppContent = () => {
-  const { language, setLanguage, getText } = useAppContext();
+  const { language, setLanguage, getText, darkMode, setDarkMode } = useAppContext();
 
   // State management
   const [pumpData, setPumpData] = React.useState([]);
@@ -460,39 +460,47 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors`}>
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-sm border-b transition-colors`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <a href="https://www.hungpump.com/" tabIndex={0} aria-label="Go to homepage">
-                <img 
-                  src={`/images/logo.gif?v=${new Date().getTime()}`}
-                  alt="Hung Pump Logo" 
-                  className="h-12 md:h-16 object-contain" 
-                />
-              </a>
-              <h1 className="text-2xl font-bold text-blue-700">
-                {getText("Hung Pump", language)}
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <select 
-                value={language} 
-                onChange={(e) => setLanguage(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="English">English</option>
-                <option value="繁體中文">繁體中文</option>
-              </select>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <a href="https://www.hungpump.com/" tabIndex={0} aria-label="Go to homepage">
+                  <img 
+                    src={`/images/logo.gif?v=${new Date().getTime()}`}
+                    alt="Hung Pump Logo" 
+                    className="h-12 md:h-16 object-contain" 
+                  />
+                </a>
+                <h1 className={`text-2xl font-bold ${darkMode ? 'text-blue-600' : 'text-blue-600'}`}> 
+                  {getText("Hung Pump", language)}
+                </h1>
+              </div>
+              <div className="flex items-center space-x-4">
+                {/* Dark mode toggle */}
+                <button
+                  onClick={() => setDarkMode(dm => !dm)}
+                  className={`px-3 py-2 rounded-md font-medium border ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-gray-100 text-gray-700 border-gray-300'} transition-colors`}
+                  aria-label={darkMode ? getText('Switch to light mode', language) : getText('Switch to dark mode', language)}
+                >
+                  {darkMode ? getText('Light On', language) : getText('Light Off', language)}
+                </button>
+                <select 
+                  value={language} 
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className={`px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
+                >
+                  <option value="English">English</option>
+                  <option value="繁體中文">繁體中文</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <h2 className="text-xl font-semibold mb-6">{getText("Pump Selection Tool", language)}</h2>
+        <h2 className={`text-xl font-semibold mb-6 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Pump Selection Tool", language)}</h2>
         
         {/* Data Status */}
         <DataStatus 
@@ -505,17 +513,17 @@ useEffect(() => {
         />
 
         {/* Step 1: Basic Criteria */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4">{getText("Step 1", language)}</h3>
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Step 1", language)}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 <div>
-  <label className="block text_sm font-medium text-gray-700 mb-2">
+  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
     {getText("Category", language)}
   </label>
   <select
     value={selectedCategory}
     onChange={(e) => setSelectedCategory(e.target.value)}
-    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
   >
     <option value="">{getText("All Categories", language)}</option>
     {allCategories.map((cat) => (
@@ -529,13 +537,13 @@ useEffect(() => {
 
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Frequency", language)}
               </label>
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               >
                 <option value="">{getText("Show All Frequency", language)}</option>
                 {allFrequencies.map(freq => (
@@ -544,13 +552,13 @@ useEffect(() => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Phase", language)}
               </label>
               <select
                 value={phase}
                 onChange={(e) => setPhase(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               >
                 <option value="">{getText("Show All Phase", language)}</option>
                 {allPhases.map(ph => (
@@ -563,12 +571,12 @@ useEffect(() => {
 
         {/* Application Inputs */}
         {isBooster&& (
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4">{getText("Application Input", language)}</h3>
-            <p className="text-sm text-gray-600 mb-4">{getText("Floor Faucet Info", language)}</p>
+          <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Application Input", language)}</h3>
+            <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{getText("Floor Faucet Info", language)}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   {getText("Number of Floors", language)}
                 </label>
                 <input
@@ -591,11 +599,11 @@ useEffect(() => {
                       setFloors(0);
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   {getText("Number of Faucets", language)}
                 </label>
                 <input
@@ -618,7 +626,7 @@ useEffect(() => {
                       setFaucets(0);
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
                 />
               </div>
             </div>
@@ -626,13 +634,13 @@ useEffect(() => {
         )}
 
         {/* Pond Drainage */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+          <h3 className={`text-lg font-semibold mb-4 flex items-center ${darkMode ? 'text-blue-200' : ''}`}>
             {getText("Pond Drainage", language)}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Pond Length", language)}
               </label>
               <input
@@ -656,11 +664,11 @@ useEffect(() => {
                     setPondLength(0);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Pond Width", language)}
               </label>
               <input
@@ -684,11 +692,11 @@ useEffect(() => {
                     setPondWidth(0);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Pond Height", language)}
               </label>
               <input
@@ -712,11 +720,11 @@ useEffect(() => {
                     setPondHeight(0);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Drain Time", language)}
               </label>
               <input
@@ -740,17 +748,17 @@ useEffect(() => {
                     setDrainTime(0.01); // Minimum value is 0.01
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               />
             </div>
           </div>
           {pondVolume > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-4">
-              <p className="text-sm text-blue-700">
+            <div className={`rounded p-3 mb-4 border ${darkMode ? 'bg-blue-900 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
+              <p className={`text-sm ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>
                 {getText("Pond Volume", language, { volume: Math.round(pondVolume) })}
               </p>
               {pondLpm > 0 && (
-                <p className="text-sm text-blue-700 mt-1">
+                <p className={`text-sm mt-1 ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>
                   {getText("Required Flow", language, { 
                     flow: Math.round(convertFlowFromLpm(pondLpm, flowUnit) * 100) / 100, 
                     unit: getText(flowUnit, language) 
@@ -761,7 +769,7 @@ useEffect(() => {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Pump Depth", language)}
               </label>
               <input
@@ -785,11 +793,11 @@ useEffect(() => {
                     setUndergroundDepth(0);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getText("Particle Size", language)}
               </label>
               <input
@@ -813,19 +821,19 @@ useEffect(() => {
                     setParticleSize(0);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
               />
             </div>
           </div>
         </div>
 
         {/* Manual Input */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4">{getText("Manual Input", language)}</h3>
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Manual Input", language)}</h3>
           
           {/* Flow Unit Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {getText("Flow Unit", language)}
             </label>
             <div className="flex flex-wrap gap-2">
@@ -836,7 +844,9 @@ useEffect(() => {
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     flowUnit === unit
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : darkMode
+                        ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {getText(unit, language)}
@@ -846,7 +856,7 @@ useEffect(() => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {getText("Flow Value", language)}
             </label>
             <input
@@ -870,13 +880,13 @@ useEffect(() => {
                   setFlowValue(0);
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
             />
           </div>
 
           {/* Head Unit Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {getText("Head Unit", language)}
             </label>
             <div className="flex gap-2">
@@ -887,7 +897,9 @@ useEffect(() => {
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     headUnit === unit
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : darkMode
+                        ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {getText(unit, language)}
@@ -897,7 +909,7 @@ useEffect(() => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {getText("TDH", language)}
             </label>
             <input
@@ -921,28 +933,28 @@ useEffect(() => {
                   setHeadValue(0);
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
             />
           </div>
 
           {/* Estimated Application for Booster */}
           {isBooster && (flowValue > 0 || headValue > 0) && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
-              <h4 className="text-sm font-semibold text-yellow-800 mb-2">
+            <div className={`rounded p-4 border ${darkMode ? 'bg-yellow-900 border-yellow-700' : 'bg-yellow-50 border-yellow-200'}`}>
+              <h4 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
                 {getText("Estimated Application", language)}
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-yellow-700">
+                  <div className={`text-lg font-semibold ${darkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>
                     {Math.round(convertHeadToM(headValue, headUnit) / 3.5)}
                   </div>
-                  <div className="text-xs text-yellow-600">{getText("Estimated Floors", language)}</div>
+                  <div className={`text-xs ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{getText("Estimated Floors", language)}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-yellow-700">
+                  <div className={`text-lg font-semibold ${darkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>
                     {Math.round(convertFlowToLpm(flowValue, flowUnit) / 15)}
                   </div>
-                  <div className="text-xs text-yellow-600">{getText("Estimated Faucets", language)}</div>
+                  <div className={`text-xs ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{getText("Estimated Faucets", language)}</div>
                 </div>
               </div>
             </div>
@@ -962,10 +974,10 @@ useEffect(() => {
         />
 
         {/* Result Percentage Slider */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4">{getText("Result Display", language)}</h3>
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Result Display", language)}</h3>
           <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700 min-w-0">
+            <label className={`text-sm font-medium min-w-0 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {getText("Show Percentage", language)}
             </label>
             <input
@@ -977,7 +989,7 @@ useEffect(() => {
               onChange={(e) => setResultPercent(parseInt(e.target.value))}
               className="flex-1"
             />
-            <span className="text-sm font-medium text-gray-700 min-w-0">
+            <span className={`text-sm font-medium min-w-0 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {resultPercent}%
             </span>
           </div>
@@ -1002,7 +1014,7 @@ useEffect(() => {
         {/* Results Table */}
         <Suspense fallback={<div>Loading results...</div>}>
           {pumpData.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+            <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-4 mb-6 transition-colors`}>
               <SimplePagination
                 currentPage={currentPage}
                 totalPages={Math.max(1, Math.ceil(pumpData.length / rowsPerPage))}
@@ -1034,7 +1046,7 @@ useEffect(() => {
             convertHeadFromM={convertHeadFromM}
           />
           {pumpData.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+            <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-4 mb-6 transition-colors`}>
               <SimplePagination
                 currentPage={currentPage}
                 totalPages={Math.max(1, Math.ceil(pumpData.length / rowsPerPage))}

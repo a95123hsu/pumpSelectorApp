@@ -16,7 +16,7 @@ const ResultsTable = ({
   convertFlowFromLpm,
   convertHeadFromM
 }) => {
-  const { getText, language } = useAppContext();
+  const { getText, language, darkMode } = useAppContext();
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
   
@@ -63,13 +63,13 @@ const ResultsTable = ({
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">{getText("Matching Pumps", language)}</h3>
+      <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Matching Pumps", language)}</h3>
         <div className="text-center py-8">
           <div className="animate-pulse flex flex-col items-center justify-center">
-            <div className="rounded-full bg-blue-200 h-8 w-8 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-2.5"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+            <div className={`rounded-full h-8 w-8 mb-4 ${darkMode ? 'bg-blue-800' : 'bg-blue-200'}`}></div>
+            <div className={`h-4 rounded w-1/4 mb-2.5 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+            <div className={`h-4 rounded w-1/3 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
           </div>
         </div>
       </div>
@@ -79,13 +79,13 @@ const ResultsTable = ({
   // No results state
   if (!pumpData || pumpData.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">{getText("Matching Pumps", language)}</h3>
+      <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Matching Pumps", language)}</h3>
         <div className="text-center py-8">
           <p className="text-amber-600 font-medium text-lg mb-2">
             {getText("No Matches", language)}
           </p>
-          <p className="text-gray-600">
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             {getText("Select Warning", language)}
           </p>
         </div>
@@ -115,7 +115,7 @@ const ResultsTable = ({
               href={pump['Product Link']}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline"
+              className={`underline transition-colors ${darkMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
             >
               {pump[col]}
             </a>
@@ -177,7 +177,7 @@ const ResultsTable = ({
             href={pump[col]}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 underline"
+            className={`underline transition-colors ${darkMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'}`}
           >
             {getText("View Product", language)}
           </a>
@@ -247,9 +247,9 @@ const ResultsTable = ({
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-      <h3 className="text-lg font-semibold mb-4">{getText("Matching Pumps", language)}</h3>
-      <p className="text-sm text-gray-600 mb-4">
+    <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+      <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Matching Pumps", language)}</h3>
+      <p className={`text-sm mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
         {getText("Found Pumps", language, { count: pumpData.length })}
       </p>
 
@@ -257,13 +257,13 @@ const ResultsTable = ({
       <div className="flex space-x-2 mb-2">
         <button
           onClick={selectAllPumpsOnPage}
-          className="px-3 py-1 text-sm bg-blue-50 text-blue-600 border border-blue-200 rounded hover:bg-blue-100"
+          className={`px-3 py-1 text-sm border rounded transition-colors ${darkMode ? 'bg-blue-800 text-blue-100 border-blue-700 hover:bg-blue-900' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'}`}
         >
           {getText("Select All", language)}
         </button>
         <button
           onClick={deselectAllPumpsOnPage}
-          className="px-3 py-1 text-sm bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100"
+          className={`px-3 py-1 text-sm border rounded transition-colors ${darkMode ? 'bg-red-800 text-red-100 border-red-700 hover:bg-red-900' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
         >
           {getText("Deselect All", language)}
         </button>
@@ -305,22 +305,22 @@ const ResultsTable = ({
             link.click();
             document.body.removeChild(link);
           }}
-          className="px-3 py-1 text-sm bg-green-50 text-green-700 border border-green-200 rounded hover:bg-green-100"
+          className={`px-3 py-1 text-sm border rounded transition-colors ${darkMode ? 'bg-green-800 text-green-100 border-green-700 hover:bg-green-900' : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'}`}
         >
           {getText("Export CSV", language)}
         </button>
       </div>
 
       {/* Single scrollable container */}
-      <div className="overflow-x-auto border rounded-md" ref={containerRef}>
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className={`overflow-x-auto border rounded-md ${darkMode ? 'border-gray-700' : ''}`} ref={containerRef}>
+        <table className={`min-w-full divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+          <thead className={`${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <tr>
               {allColumns.map(column => (
                 <th 
                   key={column.id}
                   scope="col"
-                  className={`py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap ${column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+                  className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap ${darkMode ? 'text-gray-300' : 'text-gray-500'} ${column.sortable ? (darkMode ? 'cursor-pointer hover:bg-gray-800' : 'cursor-pointer hover:bg-gray-100') : ''}`}
                   style={{ width: column.width }}
                   onClick={() => column.sortable ? requestSort(column.id) : null}
                 >
@@ -336,16 +336,16 @@ const ResultsTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className={`${darkMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'}`}>
             {sortedData.map((pump, index) => (
               <tr 
                 key={`${pump["Model No."]}-${index}`} 
-                className="hover:bg-gray-50"
+                className={`${darkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50'}`}
               >
                 {allColumns.map(column => (
                   <td 
                     key={`${pump["Model No."]}-${column.id}`}
-                    className="py-4 px-4 whitespace-nowrap" 
+                    className={`py-4 px-4 whitespace-nowrap ${darkMode ? 'text-gray-200' : ''}`} 
                     style={{ width: column.width }}
                   >
                     {column.special ? (
@@ -353,7 +353,7 @@ const ResultsTable = ({
                         type="checkbox"
                         checked={selectedPumps.includes(pump["Model No."])}
                         onChange={() => togglePumpSelection(pump["Model No."])}
-                        className="rounded border-gray-300"
+                        className={`rounded focus:ring-blue-500 ${darkMode ? 'border-gray-500 bg-gray-700 text-blue-600 focus:ring-offset-gray-800' : 'border-gray-300 text-blue-600'}`}
                       />
                     ) : column.render(pump)}
                   </td>
@@ -365,10 +365,10 @@ const ResultsTable = ({
       </div>
       
       <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-500">
+        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
           {getText("Showing Results", language, { count: pumpData.length })}
         </p>
-        <p className="text-sm text-gray-500">
+        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
           {getText("Select Pumps", language)}
         </p>
       </div>

@@ -16,6 +16,22 @@ export const AppProvider = ({ children }) => {
   // Load language from URL or localStorage
   const [language, setLanguage] = useState(getDefaultLanguage);
 
+  // Dark mode state
+  const [darkMode, setDarkMode] = useState(() => {
+    const stored = localStorage.getItem('darkMode');
+    return stored === 'true';
+  });
+
+  // Persist dark mode to localStorage and update document class
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   // Persist language to localStorage and update URL whenever it changes
   useEffect(() => {
     localStorage.setItem('language', language);
@@ -63,7 +79,9 @@ export const AppProvider = ({ children }) => {
   const value = {
     language,
     setLanguage,
-    getText
+    getText,
+    darkMode,
+    setDarkMode
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
