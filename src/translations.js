@@ -13,10 +13,18 @@ const translations = {
     "Show Curve": "Show Pump Curve",
     "Update Curves": "Update Curves",
     "Export CSV": "Export CSV",
+    "Light On": "Light On",
+    "Light Off": "Light Off",
+    "Switch to light mode": "Switch to light mode",
+    "Switch to dark mode": "Switch to dark mode",
     
     // Step 1
     "Step 1": "Select Basic Criteria (Optional)",
     "Category": "Category:",
+    "Model Filter": "Model Filter:",
+    "Enter model prefix (e.g., BPS)": "Enter model prefix (e.g., BPS)",
+    "Horse Power": "Horse Power:",
+    "All HP": "All HP",
     "Frequency": "Frequency (Hz):",
     "Phase": "Phase:",
     "Select...": "Select...",
@@ -41,6 +49,13 @@ const translations = {
     "High Pressure": "High Pressure",
     "Booster": "Booster",
     "BLDC": "BLDC",
+    "High Head Submersible Clean Water Pumps": "High Head Submersible Clean Water Pumps",
+    "Macerator Grinder Pump": "Macerator Grinder Pump",
+    "Lift Station Dirty Water Pump System": "Lift Station Dirty Water Pump System",
+    "High Flow Dirty Water Pumps": "High Flow Dirty Water Pumps",
+    "Dewatering Pump": "Dewatering Pump",
+    "Sump Pump": "Sump Pump",
+    "Vortex Pump": "Vortex Pump",
     
     // Application section
     "Application Input": "Application Input (Optional)",
@@ -64,9 +79,13 @@ const translations = {
     // Manual Input
     "Manual Input": "Manual Input (Optional)",
     "Flow Unit": "Flow Unit",
+    "Rated Flow": "Rated Flow",
     "Flow Value": "Flow Value",
     "Head Unit": "Head Unit",
     "TDH": "Total Dynamic Head (TDH)",
+    "Search Tolerance": "Search Tolerance",
+    "Flow Tolerance": "Flow Tolerance",
+    "Head Tolerance": "Head Tolerance",
     
     // Estimated application
     "Estimated Application": "Estimated Application (based on Manual Input)",
@@ -160,10 +179,18 @@ const translations = {
     "Show Curve": "顯示泵浦曲線",
     "Update Curves": "更新曲線",
     "Export CSV": "匯出CSV",
+    "Light On": "開燈",
+    "Light Off": "關燈",
+    "Switch to light mode": "切換到亮色模式",
+    "Switch to dark mode": "切換到暗色模式",
     
     // Step 1
     "Step 1": "選擇基本條件 (選填)",
     "Category": "類別:",
+    "Model Filter": "型號篩選:",
+    "Enter model prefix (e.g., BPS)": "輸入型號前綴 (例如: BPS)",
+    "Horse Power": "馬力:",
+    "All HP": "所有馬力",
     "Frequency": "頻率 (赫茲):",
     "Phase": "相數:",
     "Select...": "請選擇...",
@@ -207,6 +234,9 @@ const translations = {
   "Dirty Water": "污水泵",
   "All Stainless Submersible Sump and Sewage Pumps": "全不鏽鋼潛水集水坑及污水泵",
   "BLDC Dosing Pump": "BLDC計量泵",
+  "Booster and Centrifugal": "增壓及離心泵",
+  "Swimming Pool Pump": "泳池泵",
+  "Progressive Cavity": "螺桿泵",
     
     // Application section
     "Application Input": "應用輸入 (選填)",
@@ -230,9 +260,13 @@ const translations = {
     // Manual Input
     "Manual Input": "手動輸入 (選填)",
     "Flow Unit": "流量單位",
+    "Rated Flow": "額定流量",
     "Flow Value": "流量值",
     "Head Unit": "揚程單位",
-    "TDH": "總動態揚程 (TDH)",
+    "Rated Head": "額定揚程",
+    "Search Tolerance": "搜尋容差",
+    "Flow Tolerance": "流量容差",
+    "Head Tolerance": "揚程容差",
     
     // Estimated application
     "Estimated Application": "估計應用 (基於手動輸入)",

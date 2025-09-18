@@ -122,7 +122,12 @@ const ResultsTable = ({
           );
         }
         // Translate category values
-        if (col === 'Category' && pump[col]) return getText(pump[col], language);
+        if (col === 'Category' && pump[col]) {
+          // Handle comma-separated categories
+          const categories = pump[col].split(',').map(cat => cat.trim());
+          const translatedCategories = categories.map(category => getText(category, language));
+          return translatedCategories.join(', ');
+        }
         // Translate phase if you have translations
         if (col === 'Phase' && pump[col]) return getText(pump[col], language);
         return pump[col];
@@ -169,7 +174,12 @@ const ResultsTable = ({
     sortable: col !== "Product Link", // Don't make links sortable
     sortKey: col,
     render: (pump) => {
-      if (col === 'Category' && pump[col]) return getText(pump[col], language);
+      if (col === 'Category' && pump[col]) {
+        // Handle comma-separated categories
+        const categories = pump[col].split(',').map(cat => cat.trim());
+        const translatedCategories = categories.map(category => getText(category, language));
+        return translatedCategories.join(', ');
+      }
       if (col === 'Phase' && pump[col]) return getText(pump[col], language);
       if (col === "Product Link" && pump[col]) {
         return (

@@ -75,6 +75,7 @@ const AppContent = () => {
 
   // Filter states
  const [selectedCategory, setSelectedCategory] = React.useState("");
+  const [hpFilter, setHpFilter] = React.useState("");
 
   const [frequency, setFrequency] = React.useState("");
   const [phase, setPhase] = React.useState("");
@@ -95,12 +96,17 @@ const AppContent = () => {
   const [headUnit, setHeadUnit] = React.useState("m");
   const [headValue, setHeadValue] = React.useState(0);
 
+  // Tolerance settings (percentage)
+  const [flowTolerance, setFlowTolerance] = React.useState(0);
+  const [headTolerance, setHeadTolerance] = React.useState(0);
+
   // Results
   const [selectedPumps, setSelectedPumps] = React.useState([]);
   const [resultPercent, setResultPercent] = React.useState(100);
   const [selectedColumns, setSelectedColumns] = React.useState([
     "Q Rated/LPM", 
     "Head Rated/M",  // Add any additional columns you want by default
+    "HP",
     "Frequency_Hz",
     "Phase",
     "Category",
@@ -123,6 +129,7 @@ const AppContent = () => {
   const [allCategories, setAllCategories] = React.useState([]);
   const [allFrequencies, setAllFrequencies] = React.useState([]);
   const [allPhases, setAllPhases] = React.useState([]);
+  const [allHorsePowers, setAllHorsePowers] = React.useState([]);
 
   // Hardcoded frequency list
   const HARDCODED_FREQUENCIES = [
@@ -232,15 +239,33 @@ const fetchData = async () => {
 
     let pumpRows = Array.from(byId.values());
 
-    // Client-side flow/head filters
+    // Client-side HP filter
+    if (hpFilter && hpFilter.trim() !== "") {
+      pumpRows = pumpRows.filter(p => {
+        const pumpHP = p["HP"];
+        return String(pumpHP) === String(hpFilter);
+      });
+    }
+
+    // Client-side flow/head filters with tolerance
     const requiredFlowLpm = convertFlowToLpm(flowValue, flowUnit);
     const requiredHeadM = convertHeadToM(headValue, headUnit);
 
     if (requiredFlowLpm > 0) {
-      pumpRows = pumpRows.filter(p => p["Q Rated/LPM"] >= requiredFlowLpm);
+      const flowMin = requiredFlowLpm * (1 - flowTolerance / 100);
+      const flowMax = requiredFlowLpm * (1 + flowTolerance / 100);
+      pumpRows = pumpRows.filter(p => {
+        const pumpFlow = p["Q Rated/LPM"];
+        return pumpFlow >= flowMin && pumpFlow <= flowMax;
+      });
     }
     if (requiredHeadM > 0) {
-      pumpRows = pumpRows.filter(p => p["Head Rated/M"] >= requiredHeadM);
+      const headMin = requiredHeadM * (1 - headTolerance / 100);
+      const headMax = requiredHeadM * (1 + headTolerance / 100);
+      pumpRows = pumpRows.filter(p => {
+        const pumpHead = p["Head Rated/M"];
+        return pumpHead >= headMin && pumpHead <= headMax;
+      });
     }
 
     // Top X% by closeness
@@ -281,16 +306,34 @@ const fetchData = async () => {
 
 
 
-  // Fetch all unique categories, frequencies, and phases for filter options
+  // Fetch all unique categories, frequencies, phases, and horse powers for filter options
 useEffect(() => {
   (async () => {
+    // Fetch categories
     const { data, error } = await supabase
       .from('categories')
       .select('id, name')
       .order('name');
     if (!error) setAllCategories(data || []);
+    
+    // Set hardcoded values
     setAllFrequencies(["50","60"]);
     setAllPhases(["1","3"]);
+    
+    // Fetch unique HP values
+    const { data: hpData, error: hpError } = await supabase
+      .from('pump_selection_data')
+      .select('HP')
+      .not('HP', 'is', null)
+      .order('HP');
+    
+    if (!hpError && hpData) {
+      // Get unique HP values and sort them numerically
+      const uniqueHPs = [...new Set(hpData.map(item => item.HP))]
+        .filter(hp => hp !== null && hp !== undefined && hp !== '')
+        .sort((a, b) => parseFloat(a) - parseFloat(b));
+      setAllHorsePowers(uniqueHPs);
+    }
   })();
 }, []);
 
@@ -337,13 +380,14 @@ const autoTdh  = isBooster ? Math.max(floors * 3.5, pondHeight)
   // Reset to first page when filters change
 useEffect(() => {
   setCurrentPage(1);
-}, [selectedCategory, frequency, phase, flowValue, headValue]);
+}, [selectedCategory, hpFilter, frequency, phase, flowValue, headValue]);
 
 
 
   // Reset function
   const resetInputs = () => {
     setSelectedCategories("");
+    setHpFilter("");
     setFrequency("");
     setPhase("");
     setFloors(0);
@@ -356,10 +400,13 @@ useEffect(() => {
     setParticleSize(0);
     setFlowValue(0);
     setHeadValue(0);
+    setFlowTolerance(10);
+    setHeadTolerance(10);
     setSelectedPumps([]);
     setSelectedColumns([
       "Q Rated/LPM", 
       "Head Rated/M",  // Make sure these match the ones above
+      "HP",
       "Frequency_Hz",
       "Phase",
       "Category",
@@ -515,7 +562,7 @@ useEffect(() => {
         {/* Step 1: Basic Criteria */}
         <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
           <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Step 1", language)}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 <div>
   <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
     {getText("Category", language)}
@@ -530,6 +577,22 @@ useEffect(() => {
       <option key={cat.id} value={String(cat.id)}>
         {getText(cat.name, language)}
       </option>
+    ))}
+  </select>
+</div>
+
+<div>
+  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+    {getText("Horse Power", language)}
+  </label>
+  <select
+    value={hpFilter}
+    onChange={(e) => setHpFilter(e.target.value)}
+    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
+  >
+    <option value="">{getText("All HP", language)}</option>
+    {allHorsePowers.map(hp => (
+      <option key={hp} value={hp}>{hp} HP</option>
     ))}
   </select>
 </div>
@@ -857,7 +920,7 @@ useEffect(() => {
 
           <div className="mb-4">
             <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {getText("Flow Value", language)}
+              {getText("Rated Flow", language)}
             </label>
             <input
               type="number"
@@ -910,7 +973,7 @@ useEffect(() => {
 
           <div className="mb-4">
             <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {getText("TDH", language)}
+              {getText("Rated Head", language)}
             </label>
             <input
               type="number"
@@ -935,6 +998,63 @@ useEffect(() => {
               }}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
             />
+          </div>
+
+          {/* Tolerance Settings */}
+          <div className={`rounded p-4 mb-4 border ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+            <h4 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+              {getText("Search Tolerance", language)}
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-xs font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {getText("Flow Tolerance", language)} (±%)
+                </label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    step="1"
+                    value={flowTolerance}
+                    onChange={(e) => setFlowTolerance(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className={`text-sm font-medium min-w-0 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    ±{flowTolerance}%
+                  </span>
+                </div>
+                {flowValue > 0 && (
+                  <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Range: {Math.round(convertFlowFromLpm(convertFlowToLpm(flowValue, flowUnit) * (1 - flowTolerance / 100), flowUnit) * 100) / 100} - {Math.round(convertFlowFromLpm(convertFlowToLpm(flowValue, flowUnit) * (1 + flowTolerance / 100), flowUnit) * 100) / 100} {getText(flowUnit, language)}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className={`block text-xs font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {getText("Head Tolerance", language)} (±%)
+                </label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    step="1"
+                    value={headTolerance}
+                    onChange={(e) => setHeadTolerance(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className={`text-sm font-medium min-w-0 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    ±{headTolerance}%
+                  </span>
+                </div>
+                {headValue > 0 && (
+                  <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Range: {Math.round(convertHeadFromM(convertHeadToM(headValue, headUnit) * (1 - headTolerance / 100), headUnit) * 100) / 100} - {Math.round(convertHeadFromM(convertHeadToM(headValue, headUnit) * (1 + headTolerance / 100), headUnit) * 100) / 100} {getText(headUnit, language)}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Estimated Application for Booster */}
