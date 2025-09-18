@@ -76,6 +76,7 @@ const AppContent = () => {
   // Filter states
  const [selectedCategory, setSelectedCategory] = React.useState("");
   const [hpFilter, setHpFilter] = React.useState("");
+  const [modelFilter, setModelFilter] = React.useState("");
 
   const [frequency, setFrequency] = React.useState("");
   const [phase, setPhase] = React.useState("");
@@ -247,6 +248,14 @@ const fetchData = async () => {
       });
     }
 
+    // Client-side model filter (prefix match)
+    if (modelFilter && modelFilter.trim() !== "") {
+      pumpRows = pumpRows.filter(p => {
+        const modelNo = p["Model No."];
+        return modelNo && modelNo.toLowerCase().startsWith(modelFilter.toLowerCase());
+      });
+    }
+
     // Client-side flow/head filters with tolerance
     const requiredFlowLpm = convertFlowToLpm(flowValue, flowUnit);
     const requiredHeadM = convertHeadToM(headValue, headUnit);
@@ -380,14 +389,15 @@ const autoTdh  = isBooster ? Math.max(floors * 3.5, pondHeight)
   // Reset to first page when filters change
 useEffect(() => {
   setCurrentPage(1);
-}, [selectedCategory, hpFilter, frequency, phase, flowValue, headValue]);
+}, [selectedCategory, hpFilter, modelFilter, frequency, phase, flowValue, headValue]);
 
 
 
   // Reset function
   const resetInputs = () => {
-    setSelectedCategories("");
+    setSelectedCategory("");
     setHpFilter("");
+    setModelFilter("");
     setFrequency("");
     setPhase("");
     setFloors(0);
@@ -595,6 +605,19 @@ useEffect(() => {
       <option key={hp} value={hp}>{hp} HP</option>
     ))}
   </select>
+</div>
+
+<div>
+  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+    {getText("Model Filter", language)}
+  </label>
+  <input
+    type="text"
+    value={modelFilter}
+    onChange={(e) => setModelFilter(e.target.value)}
+    placeholder={getText("Model Filter Placeholder", language)}
+    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700 placeholder-gray-500' : 'border-gray-300 placeholder-gray-400'}`}
+  />
 </div>
 
 
