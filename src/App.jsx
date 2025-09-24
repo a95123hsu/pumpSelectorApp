@@ -77,6 +77,8 @@ const AppContent = () => {
  const [selectedCategory, setSelectedCategory] = React.useState("");
   const [hpFilter, setHpFilter] = React.useState("");
   const [modelFilter, setModelFilter] = React.useState("");
+  const [outletSizeValue, setOutletSizeValue] = React.useState("");
+  const [outletSizeUnit, setOutletSizeUnit] = React.useState("mm"); // "mm" or "inch"
 
   const [frequency, setFrequency] = React.useState("");
   const [phase, setPhase] = React.useState("");
@@ -100,14 +102,17 @@ const AppContent = () => {
   // Tolerance settings (percentage)
   const [flowTolerance, setFlowTolerance] = React.useState(0);
   const [headTolerance, setHeadTolerance] = React.useState(0);
+  const [outletTolerance, setOutletTolerance] = React.useState(10); // Default 10% tolerance for outlet size
 
   // Results
   const [selectedPumps, setSelectedPumps] = React.useState([]);
   const [resultPercent, setResultPercent] = React.useState(100);
   const [selectedColumns, setSelectedColumns] = React.useState([
     "Q Rated/LPM", 
-    "Head Rated/M",  // Add any additional columns you want by default
+    "Head Rated/M",
     "HP",
+    "Power(KW)",
+    "Outlet", // Generic outlet column that will display based on selected unit
     "Frequency_Hz",
     "Phase",
     "Category",
@@ -255,6 +260,45 @@ const fetchData = async () => {
         return modelNo && modelNo.toLowerCase().startsWith(modelFilter.toLowerCase());
       });
     }
+    
+    // Client-side outlet size filter with tolerance
+    if (outletSizeValue && outletSizeValue.trim() !== "") {
+      const outletSize = parseFloat(outletSizeValue);
+      if (!isNaN(outletSize)) {
+        const outletMin = outletSize * (1 - outletTolerance / 100);
+        const outletMax = outletSize * (1 + outletTolerance / 100);
+        
+        pumpRows = pumpRows.filter(p => {
+          let pumpOutletSize;
+          
+          if (outletSizeUnit === "mm") {
+            // Filter by mm directly with tolerance
+            pumpOutletSize = p["Outlet (mm)"];
+            return pumpOutletSize !== undefined && pumpOutletSize !== null && 
+                  pumpOutletSize >= outletMin && pumpOutletSize <= outletMax;
+          } else {
+            // Filter by inches, but check both fields
+            // Some pumps might store outlet size in inches directly, others in mm
+            pumpOutletSize = p["Outlet (inch)"];
+            
+            if (pumpOutletSize !== undefined && pumpOutletSize !== null) {
+              return pumpOutletSize >= outletMin && pumpOutletSize <= outletMax;
+            }
+            
+            // If not found in inches, check mm and convert
+            pumpOutletSize = p["Outlet (mm)"];
+            if (pumpOutletSize !== undefined && pumpOutletSize !== null) {
+              // Convert mm to inches (1 inch = 25.4 mm)
+              const inchSize = pumpOutletSize / 25.4;
+              // Compare with tolerance range
+              return inchSize >= outletMin && inchSize <= outletMax;
+            }
+            
+            return false;
+          }
+        });
+      }
+    }
 
     // Client-side flow/head filters with tolerance
     const requiredFlowLpm = convertFlowToLpm(flowValue, flowUnit);
@@ -333,14 +377,50 @@ useEffect(() => {
     const { data: hpData, error: hpError } = await supabase
       .from('pump_selection_data')
       .select('HP')
-      .not('HP', 'is', null)
-      .order('HP');
+      .not('HP', 'is', null);
     
     if (!hpError && hpData) {
-      // Get unique HP values and sort them numerically
+      // Get unique HP values and sort them numerically (from small to large)
       const uniqueHPs = [...new Set(hpData.map(item => item.HP))]
         .filter(hp => hp !== null && hp !== undefined && hp !== '')
-        .sort((a, b) => parseFloat(a) - parseFloat(b));
+        .map(hp => {
+          let numericValue;
+          const hpStr = String(hp).trim();
+          
+          // Handle mixed number format like "1 1/4"
+          if (typeof hpStr === 'string' && hpStr.includes(' ') && hpStr.includes('/')) {
+            const parts = hpStr.split(' ');
+            const wholeNumber = parseFloat(parts[0]);
+            const fractionParts = parts[1].split('/');
+            if (fractionParts.length === 2) {
+              const numerator = parseFloat(fractionParts[0]);
+              const denominator = parseFloat(fractionParts[1]);
+              if (!isNaN(wholeNumber) && !isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                numericValue = wholeNumber + (numerator / denominator);
+              }
+            }
+          }
+          // Handle simple fractions like "1/2"
+          else if (typeof hpStr === 'string' && hpStr.includes('/')) {
+            const fractionParts = hpStr.split('/');
+            if (fractionParts.length === 2) {
+              const numerator = parseFloat(fractionParts[0]);
+              const denominator = parseFloat(fractionParts[1]);
+              if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                numericValue = numerator / denominator;
+              }
+            }
+          }
+          
+          // If not a fraction or mixed number, or if parsing failed
+          if (numericValue === undefined) {
+            numericValue = parseFloat(hpStr);
+          }
+          
+          return { original: hp, numeric: numericValue };
+        })
+        .sort((a, b) => a.numeric - b.numeric)  // Sort by numeric value (ascending)
+        .map(item => item.original);  // Convert back to original format
       setAllHorsePowers(uniqueHPs);
     }
   })();
@@ -389,7 +469,7 @@ const autoTdh  = isBooster ? Math.max(floors * 3.5, pondHeight)
   // Reset to first page when filters change
 useEffect(() => {
   setCurrentPage(1);
-}, [selectedCategory, hpFilter, modelFilter, frequency, phase, flowValue, headValue]);
+}, [selectedCategory, hpFilter, modelFilter, outletSizeValue, outletSizeUnit, frequency, phase, flowValue, headValue]);
 
 
 
@@ -398,6 +478,8 @@ useEffect(() => {
     setSelectedCategory("");
     setHpFilter("");
     setModelFilter("");
+    setOutletSizeValue("");
+    setOutletSizeUnit("mm");
     setFrequency("");
     setPhase("");
     setFloors(0);
@@ -412,11 +494,14 @@ useEffect(() => {
     setHeadValue(0);
     setFlowTolerance(10);
     setHeadTolerance(10);
+    setOutletTolerance(10);
     setSelectedPumps([]);
     setSelectedColumns([
       "Q Rated/LPM", 
-      "Head Rated/M",  // Make sure these match the ones above
+      "Head Rated/M",
       "HP",
+      "Power(KW)",
+      "Outlet", // Generic outlet column that will display based on selected unit
       "Frequency_Hz",
       "Phase",
       "Category",
@@ -485,7 +570,30 @@ useEffect(() => {
   // Only calculate allColumns once after data is loaded
   useEffect(() => {
     if (pumpData.length > 0 && cachedAllColumns.length === 0) {
-  setCachedAllColumns(Object.keys(pumpData[0] || {}).filter(col => col !== "DB ID" && col !== "id" && col !== "product_categories" && col !== "_categoryNames"));
+      // Get all columns from the pump data
+      let columns = Object.keys(pumpData[0] || {}).filter(col => 
+        col !== "DB ID" && 
+        col !== "id" && 
+        col !== "product_categories" && 
+        col !== "_categoryNames"
+      );
+      
+      // Replace "Outlet (mm)" and "Outlet (inch)" with a generic "Outlet" column
+      // to match what we use in selectedColumns
+      const outletMmIndex = columns.indexOf("Outlet (mm)");
+      const outletInchIndex = columns.indexOf("Outlet (inch)");
+      
+      if (outletMmIndex !== -1 || outletInchIndex !== -1) {
+        // Remove both outlet columns
+        columns = columns.filter(col => col !== "Outlet (mm)" && col !== "Outlet (inch)");
+        
+        // Add the generic outlet column if it doesn't already exist
+        if (!columns.includes("Outlet")) {
+          columns.push("Outlet");
+        }
+      }
+      
+      setCachedAllColumns(columns);
     }
   }, [pumpData, cachedAllColumns.length]);
 
@@ -593,17 +701,65 @@ useEffect(() => {
 
 <div>
   <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-    {getText("Horse Power", language)}
+    {getText("Output", language)}
   </label>
   <select
     value={hpFilter}
     onChange={(e) => setHpFilter(e.target.value)}
     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
   >
-    <option value="">{getText("All HP", language)}</option>
-    {allHorsePowers.map(hp => (
-      <option key={hp} value={hp}>{hp} HP</option>
-    ))}
+    <option value="">{getText("All Output", language)}</option>
+    {allHorsePowers.map(hp => {
+      // Convert HP to kW and W
+      let hpNum;
+      if (typeof hp === 'number') {
+        hpNum = hp;
+      } else if (typeof hp === 'string') {
+        const hpStr = String(hp).trim();
+        
+        // Handle mixed number format like "1 1/4"
+        if (hpStr.includes(' ') && hpStr.includes('/')) {
+          const parts = hpStr.split(' ');
+          const wholeNumber = parseFloat(parts[0]);
+          const fractionParts = parts[1].split('/');
+          if (fractionParts.length === 2) {
+            const numerator = parseFloat(fractionParts[0]);
+            const denominator = parseFloat(fractionParts[1]);
+            if (!isNaN(wholeNumber) && !isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+              hpNum = wholeNumber + (numerator / denominator);
+            }
+          }
+        } 
+        // Handle simple fractions like "1/2"
+        else if (hpStr.includes('/')) {
+          const fractionParts = hpStr.split('/');
+          if (fractionParts.length === 2) {
+            const numerator = parseFloat(fractionParts[0]);
+            const denominator = parseFloat(fractionParts[1]);
+            if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+              hpNum = numerator / denominator;
+            }
+          }
+        }
+        // Regular number
+        else {
+          hpNum = parseFloat(hpStr);
+        }
+      }
+      
+      // Calculate kW if we have a valid number
+      let kw, w;
+      if (!isNaN(hpNum)) {
+        kw = (hpNum * 0.745699872).toFixed(2);
+        w = Math.round(kw * 1000);
+      }
+      
+      return (
+        <option key={hp} value={hp}>
+          {hp} HP {kw ? `(${kw} kW / ${w} W)` : ''}
+        </option>
+      );
+    })}
   </select>
 </div>
 
@@ -651,6 +807,42 @@ useEffect(() => {
                   <option key={ph} value={ph}>{ph}</option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {getText("Outlet Size", language)}
+              </label>
+              <div className="flex">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={outletSizeValue}
+                  onChange={(e) => setOutletSizeValue(e.target.value)}
+                  placeholder={getText("Enter outlet size", language)}
+                  className={`flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700 placeholder-gray-500' : 'border-gray-300 placeholder-gray-400'}`}
+                />
+                <select
+                  value={outletSizeUnit}
+                  onChange={(e) => setOutletSizeUnit(e.target.value)}
+                  className={`px-2 py-2 border-l-0 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
+                >
+                  <option value="mm">{getText("mm", language)}</option>
+                  <option value="inch">{getText("inch", language)}</option>
+                </select>
+              </div>
+              
+              {/* Outlet size tolerance display */}
+              {outletSizeValue && outletSizeValue.trim() !== "" && !isNaN(parseFloat(outletSizeValue)) && (
+                <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {getText("Outlet Tolerance Range", language)}: {
+                    (Math.round((parseFloat(outletSizeValue) * (1 - outletTolerance / 100)) * 100) / 100)
+                  } - {
+                    (Math.round((parseFloat(outletSizeValue) * (1 + outletTolerance / 100)) * 100) / 100)
+                  } {getText(outletSizeUnit, language)}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1114,6 +1306,7 @@ useEffect(() => {
           language={language}
           essentialColumns={essentialColumns}
           allColumns={cachedAllColumns}
+          outletSizeUnit={outletSizeUnit}
         />
 
         {/* Result Percentage Slider */}
@@ -1185,6 +1378,7 @@ useEffect(() => {
             selectedColumns={selectedColumns}
             flowUnit={flowUnit}
             headUnit={headUnit}
+            outletSizeUnit={outletSizeUnit}
             convertFlowFromLpm={convertFlowFromLpm}
             convertHeadFromM={convertHeadFromM}
           />
