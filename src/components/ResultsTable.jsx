@@ -83,12 +83,17 @@ const ResultsTable = ({
       <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
         <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Matching Pumps", language)}</h3>
         <div className="text-center py-8">
-          <p className="text-amber-600 font-medium text-lg mb-2">
-            {getText("No Matches", language)}
-          </p>
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            {getText("Select Warning", language)}
-          </p>
+          <div className="flex flex-col items-center">
+            <svg className={`w-16 h-16 mb-4 ${darkMode ? 'text-amber-500' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <p className={`text-amber-600 font-medium text-lg mb-2`}>
+              {getText("No Matches", language)}
+            </p>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-md text-center`}>
+              {getText("Select Warning", language)}
+            </p>
+          </div>
         </div>
       </div>
     );

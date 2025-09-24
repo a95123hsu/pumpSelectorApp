@@ -165,8 +165,8 @@ const translations = {
     "ft": "ft",
     
     // Warnings & Errors
-    "Select Warning": "Please select Frequency and Phase to proceed.",
-    "No Matches": "No pumps match your criteria. Try adjusting the parameters.",
+    "Select Warning": "Please adjust your search parameters to find matching pumps.",
+    "No Matches": "No pumps match your criteria",
     "No Data": "No pump data available. Please check your data source.",
     "max head (m)": "Max Head (M)",
     
@@ -358,8 +358,8 @@ const translations = {
     "ft": "英尺",
     
     // Warnings & Errors
-    "Select Warning": "請選擇頻率和相數以繼續。",
-    "No Matches": "沒有符合您條件的幫浦。請調整參數。",
+    "Select Warning": "請調整您的搜尋參數，以尋找符合的幫浦。",
+    "No Matches": "沒有符合您條件的幫浦",
     "No Data": "無可用幫浦資料。請檢查您的資料來源。",
     "max head (m)": "最大揚程 (米)",
     

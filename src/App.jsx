@@ -72,6 +72,7 @@ const AppContent = () => {
   const [curveData, setCurveData] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [dataTimestamp, setDataTimestamp] = React.useState(null);
+  const [hasSearched, setHasSearched] = React.useState(false);
 
   // Filter states
  const [selectedCategory, setSelectedCategory] = React.useState("");
@@ -100,8 +101,8 @@ const AppContent = () => {
   const [headValue, setHeadValue] = React.useState(0);
 
   // Tolerance settings (percentage)
-  const [flowTolerance, setFlowTolerance] = React.useState(0);
-  const [headTolerance, setHeadTolerance] = React.useState(0);
+  const [flowTolerance, setFlowTolerance] = React.useState(10); // Default 10% tolerance for flow
+  const [headTolerance, setHeadTolerance] = React.useState(10); // Default 10% tolerance for head
   const [outletTolerance, setOutletTolerance] = React.useState(10); // Default 10% tolerance for outlet size
 
   // Results
@@ -496,6 +497,8 @@ useEffect(() => {
     setHeadTolerance(10);
     setOutletTolerance(10);
     setSelectedPumps([]);
+    setHasSearched(false);
+    setPumpData([]);
     setSelectedColumns([
       "Q Rated/LPM", 
       "Head Rated/M",
@@ -513,6 +516,7 @@ useEffect(() => {
   // Search function
   const handleSearch = () => {
     setSelectedPumps([]);
+    setHasSearched(true);
     fetchData();
   };
 
@@ -1335,38 +1339,42 @@ useEffect(() => {
         </div>
 
         {/* Results Section */}
-        {pumpData.length > 0 && (
+        {hasSearched && (
           <>
             {/* Column Selection - Only shown when results are available */}
-            <ColumnSelection
-              showColumnSelection={showColumnSelection}
-              setShowColumnSelection={setShowColumnSelection}
-              selectedColumns={selectedColumns}
-              setSelectedColumns={setSelectedColumns}
-              getText={getText}
-              language={language}
-              essentialColumns={essentialColumns}
-              allColumns={cachedAllColumns}
-              outletSizeUnit={outletSizeUnit}
-            />
+            {pumpData.length > 0 && (
+              <ColumnSelection
+                showColumnSelection={showColumnSelection}
+                setShowColumnSelection={setShowColumnSelection}
+                selectedColumns={selectedColumns}
+                setSelectedColumns={setSelectedColumns}
+                getText={getText}
+                language={language}
+                essentialColumns={essentialColumns}
+                allColumns={cachedAllColumns}
+                outletSizeUnit={outletSizeUnit}
+              />
+            )}
             
             {/* Results Table */}
             <Suspense fallback={<div>Loading results...</div>}>
-              <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-4 mb-6 transition-colors`}>
-                <SimplePagination
-                  currentPage={currentPage}
-                  totalPages={Math.max(1, Math.ceil(pumpData.length / rowsPerPage))}
-                  onPageChange={setCurrentPage}
-                  rowsPerPage={rowsPerPage}
-                  onRowsPerPageChange={(value) => {
-                    setRowsPerPage(value);
-                    setCurrentPage(1);
-                  }}
-                  totalItems={pumpData.length}
-                  getText={getText}
-                  language={language}
-                />
-              </div>
+              {pumpData.length > 0 && (
+                <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-4 mb-6 transition-colors`}>
+                  <SimplePagination
+                    currentPage={currentPage}
+                    totalPages={Math.max(1, Math.ceil(pumpData.length / rowsPerPage))}
+                    onPageChange={setCurrentPage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={(value) => {
+                      setRowsPerPage(value);
+                      setCurrentPage(1);
+                    }}
+                    totalItems={pumpData.length}
+                    getText={getText}
+                    language={language}
+                  />
+                </div>
+              )}
               <ResultsTable
             pumpData={pumpData}
             paginatedData={paginatedData}
