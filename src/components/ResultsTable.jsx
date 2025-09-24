@@ -13,6 +13,7 @@ const ResultsTable = ({
   selectedColumns = [],
   flowUnit = "L/min",
   headUnit = "m",
+  outletSizeUnit = "mm",
   convertFlowFromLpm,
   convertHeadFromM
 }) => {
@@ -166,21 +167,34 @@ const ResultsTable = ({
     col => col !== "Q Rated/LPM" && col !== "Head Rated/M" && !alwaysLast.includes(col)
   );
   const lastColumns = selectedColumns.filter(col => alwaysLast.includes(col));
+  
+  // Get proper translated unit text for outlet
+  const outletUnitText = getText(outletSizeUnit, language);
 
   const otherColumns = [...orderedSelected, ...lastColumns].map(col => ({
     id: col,
-    label: getText(col, language),
+    // For the generic "Outlet" column, include the unit in the label
+    label: col === "Outlet" 
+      ? getText("Outlet with unit", language, { unit: outletUnitText })
+      : getText(col, language),
     width: '160px',
     sortable: col !== "Product Link", // Don't make links sortable
-    sortKey: col,
+    sortKey: col === "Outlet" 
+      ? (outletSizeUnit === "mm" ? "Outlet (mm)" : "Outlet (inch)")  // Map to the actual column for sorting
+      : col,
     render: (pump) => {
+      // Handle categories translation
       if (col === 'Category' && pump[col]) {
         // Handle comma-separated categories
         const categories = pump[col].split(',').map(cat => cat.trim());
         const translatedCategories = categories.map(category => getText(category, language));
         return translatedCategories.join(', ');
       }
+      
+      // Handle phase translation
       if (col === 'Phase' && pump[col]) return getText(pump[col], language);
+      
+      // Handle product link
       if (col === "Product Link" && pump[col]) {
         return (
           <a
@@ -193,6 +207,87 @@ const ResultsTable = ({
           </a>
         );
       }
+      
+      // Handle HP with Power(KW) calculation
+      if (col === "HP" && pump[col]) {
+        // Just return HP value by itself (Power(KW) is shown in a separate column)
+        return pump[col];
+      }
+      
+      // Handle Power(KW) with conversion from HP if needed
+      if (col === "Power(KW)" && pump[col]) {
+        return pump[col]; // Use the existing Power(KW) value if available
+      } else if (col === "Power(KW)" && pump["HP"]) {
+        // Convert from HP if Power(KW) is not available
+        const hp = pump["HP"];
+        let hpNum;
+        
+        // Convert HP string to number
+        if (typeof hp === 'number') {
+          hpNum = hp;
+        } else if (typeof hp === 'string') {
+          const hpStr = String(hp).trim();
+          
+          // Handle mixed number format like "1 1/4"
+          if (hpStr.includes(' ') && hpStr.includes('/')) {
+            const parts = hpStr.split(' ');
+            const wholeNumber = parseFloat(parts[0]);
+            const fractionParts = parts[1].split('/');
+            if (fractionParts.length === 2) {
+              const numerator = parseFloat(fractionParts[0]);
+              const denominator = parseFloat(fractionParts[1]);
+              if (!isNaN(wholeNumber) && !isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                hpNum = wholeNumber + (numerator / denominator);
+              }
+            }
+          } 
+          // Handle simple fractions like "1/2"
+          else if (hpStr.includes('/')) {
+            const fractionParts = hpStr.split('/');
+            if (fractionParts.length === 2) {
+              const numerator = parseFloat(fractionParts[0]);
+              const denominator = parseFloat(fractionParts[1]);
+              if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                hpNum = numerator / denominator;
+              }
+            }
+          }
+          // Regular number
+          else {
+            hpNum = parseFloat(hpStr);
+          }
+        }
+        
+        // Calculate kW and W if we have a valid number
+        if (!isNaN(hpNum)) {
+          const kw = (hpNum * 0.745699872).toFixed(2);
+          const w = Math.round(kw * 1000);
+          return `${kw} kW (${w} W)`;
+        }
+      }
+      
+      // Handle dynamic Outlet column based on selected unit
+      if (col === "Outlet") {
+        if (outletSizeUnit === "mm") {
+          return pump["Outlet (mm)"] || "-";
+        } else if (outletSizeUnit === "inch") {
+          // First check if there's a direct inch value
+          if (pump["Outlet (inch)"]) {
+            return pump["Outlet (inch)"] || "-";
+          }
+          // If no inch value but mm value exists, convert mm to inches
+          else if (pump["Outlet (mm)"]) {
+            const mmValue = parseFloat(pump["Outlet (mm)"]);
+            if (!isNaN(mmValue)) {
+              const inchValue = (mmValue / 25.4).toFixed(2);
+              return `${inchValue}"`;
+            }
+          }
+          return "-";
+        }
+      }
+      
+      // Default return for all other columns
       return pump[col] || "-";
     }
   }));
