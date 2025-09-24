@@ -11,13 +11,17 @@ const ColumnSelection = ({
   getText,
   language,
   essentialColumns,
-  allColumns,
-  outletSizeUnit = "mm"
+  allColumns
 }) => {
   const { darkMode } = useAppContext();
+  
   // Memoize optional columns to prevent recalculation
   const optionalColumns = useMemo(() => {
-    return allColumns.filter(col => !essentialColumns.includes(col));
+    // Make sure "Outlet" is included in optional columns if it exists
+    const filtered = allColumns.filter(col => !essentialColumns.includes(col));
+    console.log("Optional columns:", filtered);
+    console.log("Selected columns:", selectedColumns);
+    return filtered;
   }, [allColumns, essentialColumns]);
   
   return (
@@ -76,36 +80,33 @@ const ColumnSelection = ({
                 {getText("Select Columns", language)}
               </h4>
               <div className="max-h-40 overflow-y-auto">
-                {optionalColumns.map(col => {
-                  // Special handling for outlet column to include the unit
-                  const labelText = col === "Outlet" ? 
-                    getText("Outlet with unit", language, { unit: getText(outletSizeUnit, language) }) : 
-                    getText(col, language);
-                    
-                  return (
-                    <label key={col} className="flex items-center space-x-2 mb-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedColumns.includes(col)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedColumns(prev => [...prev, col]);
-                          } else {
-                            setSelectedColumns(prev => prev.filter(c => c !== col));
-                          }
-                        }}
-                        className={`rounded text-blue-600 focus:ring-blue-500 ${
-                          darkMode 
-                            ? 'border-gray-500 bg-gray-700 focus:ring-offset-gray-800' 
-                            : 'border-gray-300 bg-white'
-                        }`}
-                      />
-                      <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                        {labelText}
-                      </span>
-                    </label>
-                  );
-                })}
+                {optionalColumns.map(col => (
+                  <label key={col} className="flex items-center space-x-2 mb-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedColumns.includes(col)}
+                      onChange={(e) => {
+                        console.log(`Toggling ${col}: ${e.target.checked}`);
+                        if (e.target.checked) {
+                          setSelectedColumns(prev => [...prev, col]);
+                        } else {
+                          // Make sure we're actually removing the column
+                          const newCols = selectedColumns.filter(c => c !== col);
+                          console.log(`After removal of ${col}:`, newCols);
+                          setSelectedColumns(newCols);
+                        }
+                      }}
+                      className={`rounded text-blue-600 focus:ring-blue-500 ${
+                        darkMode 
+                          ? 'border-gray-500 bg-gray-700 focus:ring-offset-gray-800' 
+                          : 'border-gray-300 bg-white'
+                      }`}
+                    />
+                    <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      {getText(col, language)}
+                    </span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>

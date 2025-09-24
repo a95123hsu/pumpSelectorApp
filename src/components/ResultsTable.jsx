@@ -269,14 +269,15 @@ const ResultsTable = ({
       // Handle dynamic Outlet column based on selected unit
       if (col === "Outlet") {
         if (outletSizeUnit === "mm") {
-          return pump["Outlet (mm)"] || "-";
+          // Use explicit check for null/undefined to allow value 0
+          return pump["Outlet (mm)"] !== undefined && pump["Outlet (mm)"] !== null ? pump["Outlet (mm)"] : "-";
         } else if (outletSizeUnit === "inch") {
           // First check if there's a direct inch value
-          if (pump["Outlet (inch)"]) {
-            return pump["Outlet (inch)"] || "-";
+          if (pump["Outlet (inch)"] !== undefined && pump["Outlet (inch)"] !== null) {
+            return pump["Outlet (inch)"];
           }
           // If no inch value but mm value exists, convert mm to inches
-          else if (pump["Outlet (mm)"]) {
+          else if (pump["Outlet (mm)"] !== undefined && pump["Outlet (mm)"] !== null) {
             const mmValue = parseFloat(pump["Outlet (mm)"]);
             if (!isNaN(mmValue)) {
               const inchValue = (mmValue / 25.4).toFixed(2);
@@ -285,10 +286,13 @@ const ResultsTable = ({
           }
           return "-";
         }
+        // Default fallback for the outlet column (if outletSizeUnit is neither mm nor inch)
+        return pump["Outlet (mm)"] !== undefined && pump["Outlet (mm)"] !== null ? pump["Outlet (mm)"] : "-";
       }
       
       // Default return for all other columns
-      return pump[col] || "-";
+      // Use explicit check for null/undefined to allow value 0
+      return pump[col] !== undefined && pump[col] !== null ? pump[col] : "-";
     }
   }));
 
@@ -339,8 +343,22 @@ const ResultsTable = ({
     });
   };
   
-  // Get the sorted data
+  // Get the sorted data first
   const sortedData = getSortedItems(paginatedData);
+  
+  // Helper function to ensure outlet values are properly displayed
+  const ensureOutletValue = (pump) => {
+    // Make sure outlet values are accessible even if they're not directly filtered
+    if (pump["Outlet"] === undefined && pump["Outlet (mm)"] !== undefined) {
+      pump["Outlet"] = outletSizeUnit === "mm" 
+        ? pump["Outlet (mm)"]
+        : (pump["Outlet (inch)"] !== undefined ? pump["Outlet (inch)"] : (pump["Outlet (mm)"] / 25.4).toFixed(2));
+    }
+    return pump;
+  };
+  
+  // Process data to ensure outlet values are available
+  const processedData = sortedData.map(pump => ensureOutletValue(pump));
   
   // Helper to get sort direction icon
   const getSortDirectionIcon = (columnId) => {
@@ -442,7 +460,7 @@ const ResultsTable = ({
             </tr>
           </thead>
           <tbody className={`${darkMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'}`}>
-            {sortedData.map((pump, index) => (
+            {processedData.map((pump, index) => (
               <tr 
                 key={`${pump["Model No."]}-${index}`} 
                 className={`${darkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50'}`}

@@ -1296,19 +1296,6 @@ useEffect(() => {
           )}
         </div>
 
-        {/* Column Selection */}
-        <ColumnSelection
-          showColumnSelection={showColumnSelection}
-          setShowColumnSelection={setShowColumnSelection}
-          selectedColumns={selectedColumns}
-          setSelectedColumns={setSelectedColumns}
-          getText={getText}
-          language={language}
-          essentialColumns={essentialColumns}
-          allColumns={cachedAllColumns}
-          outletSizeUnit={outletSizeUnit}
-        />
-
         {/* Result Percentage Slider */}
         <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
           <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Result Display", language)}</h3>
@@ -1347,26 +1334,40 @@ useEffect(() => {
           </button>
         </div>
 
-        {/* Results Table */}
-        <Suspense fallback={<div>Loading results...</div>}>
-          {pumpData.length > 0 && (
-            <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-4 mb-6 transition-colors`}>
-              <SimplePagination
-                currentPage={currentPage}
-                totalPages={Math.max(1, Math.ceil(pumpData.length / rowsPerPage))}
-                onPageChange={setCurrentPage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(value) => {
-                  setRowsPerPage(value);
-                  setCurrentPage(1);
-                }}
-                totalItems={pumpData.length}
-                getText={getText}
-                language={language}
-              />
-            </div>
-          )}
-          <ResultsTable
+        {/* Results Section */}
+        {pumpData.length > 0 && (
+          <>
+            {/* Column Selection - Only shown when results are available */}
+            <ColumnSelection
+              showColumnSelection={showColumnSelection}
+              setShowColumnSelection={setShowColumnSelection}
+              selectedColumns={selectedColumns}
+              setSelectedColumns={setSelectedColumns}
+              getText={getText}
+              language={language}
+              essentialColumns={essentialColumns}
+              allColumns={cachedAllColumns}
+              outletSizeUnit={outletSizeUnit}
+            />
+            
+            {/* Results Table */}
+            <Suspense fallback={<div>Loading results...</div>}>
+              <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-4 mb-6 transition-colors`}>
+                <SimplePagination
+                  currentPage={currentPage}
+                  totalPages={Math.max(1, Math.ceil(pumpData.length / rowsPerPage))}
+                  onPageChange={setCurrentPage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(value) => {
+                    setRowsPerPage(value);
+                    setCurrentPage(1);
+                  }}
+                  totalItems={pumpData.length}
+                  getText={getText}
+                  language={language}
+                />
+              </div>
+              <ResultsTable
             pumpData={pumpData}
             paginatedData={paginatedData}
             isLoading={loading}
@@ -1400,6 +1401,8 @@ useEffect(() => {
             </div>
           )}
         </Suspense>
+        </>
+        )}
 
         <Suspense fallback={<div>Loading pump curves...</div>}>
           {selectedPumps.length > 0 && (
