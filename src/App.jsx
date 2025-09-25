@@ -1,25 +1,68 @@
 import React, { useEffect, useMemo, lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { 
-  Search, 
-  RefreshCw, 
-  RotateCcw, 
-  TrendingUp, 
-  ChevronDown, 
-  ChevronUp,
-  Droplet
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Header from './components/Header';
 import DataStatus from './components/DataStatus';
 import supabase from './lib/supabase';
 import ColumnSelection from './components/ColumnSelection';
-import Pagination from './components/Pagination';
 import SimplePagination from './components/SimplePagination';
 
 // Lazy load components that aren't needed immediately
 const PumpCurves = lazy(() => import('./components/PumpCurves'));
 const ResultsTable = lazy(() => import('./components/ResultsTable'));
+
+// Utility function to parse horsepower values (handles fractions and mixed numbers)
+const parseHorsePower = (hp) => {
+  if (typeof hp === 'number') {
+    return hp;
+  }
+  
+  const hpStr = String(hp).trim();
+  
+  // Handle mixed number format like "1 1/4"
+  if (hpStr.includes(' ') && hpStr.includes('/')) {
+    const parts = hpStr.split(' ');
+    const wholeNumber = parseFloat(parts[0]);
+    const fractionParts = parts[1].split('/');
+    if (fractionParts.length === 2) {
+      const numerator = parseFloat(fractionParts[0]);
+      const denominator = parseFloat(fractionParts[1]);
+      if (!isNaN(wholeNumber) && !isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+        return wholeNumber + (numerator / denominator);
+      }
+    }
+  } 
+  // Handle simple fractions like "1/2"
+  else if (hpStr.includes('/')) {
+    const fractionParts = hpStr.split('/');
+    if (fractionParts.length === 2) {
+      const numerator = parseFloat(fractionParts[0]);
+      const denominator = parseFloat(fractionParts[1]);
+      if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+        return numerator / denominator;
+      }
+    }
+  }
+  // Regular number
+  else {
+    return parseFloat(hpStr);
+  }
+  
+  return NaN; // Return NaN if parsing failed
+};
+
+// Convert horsepower to kilowatt (1 HP = 0.745699872 kW)
+const horsePowerToKw = (hp) => {
+  const hpNum = parseHorsePower(hp);
+  if (!isNaN(hpNum)) {
+    return {
+      kw: (hpNum * 0.745699872).toFixed(2),
+      w: Math.round(hpNum * 0.745699872 * 1000)
+    };
+  }
+  return { kw: null, w: null };
+};
 
 
 const queryClient = new QueryClient();
@@ -138,17 +181,9 @@ const AppContent = () => {
   const [allPhases, setAllPhases] = React.useState([]);
   const [allHorsePowers, setAllHorsePowers] = React.useState([]);
 
-  // Hardcoded frequency list
-  const HARDCODED_FREQUENCIES = [
-    "50",
-    "60"
-  ];
-
-  // Hardcoded phase list
-  const HARDCODED_PHASES = [
-    "1",
-    "3"
-  ];
+  // Constants for frequency and phase values
+  const FREQUENCY_OPTIONS = ["50", "60"];
+  const PHASE_OPTIONS = ["1", "3"];
 
   // --- FETCH ALL MATCHING DATA FROM SUPABASE (NO PAGINATION, WITH BATCHING) ---
   const fetchAllRows = async (table, filters = {}) => {
@@ -370,9 +405,9 @@ useEffect(() => {
       .order('name');
     if (!error) setAllCategories(data || []);
     
-    // Set hardcoded values
-    setAllFrequencies(["50","60"]);
-    setAllPhases(["1","3"]);
+    // Set frequency and phase options from constants
+    setAllFrequencies(FREQUENCY_OPTIONS);
+    setAllPhases(PHASE_OPTIONS);
     
     // Fetch unique HP values
     const { data: hpData, error: hpError } = await supabase
@@ -385,38 +420,8 @@ useEffect(() => {
       const uniqueHPs = [...new Set(hpData.map(item => item.HP))]
         .filter(hp => hp !== null && hp !== undefined && hp !== '')
         .map(hp => {
-          let numericValue;
-          const hpStr = String(hp).trim();
-          
-          // Handle mixed number format like "1 1/4"
-          if (typeof hpStr === 'string' && hpStr.includes(' ') && hpStr.includes('/')) {
-            const parts = hpStr.split(' ');
-            const wholeNumber = parseFloat(parts[0]);
-            const fractionParts = parts[1].split('/');
-            if (fractionParts.length === 2) {
-              const numerator = parseFloat(fractionParts[0]);
-              const denominator = parseFloat(fractionParts[1]);
-              if (!isNaN(wholeNumber) && !isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
-                numericValue = wholeNumber + (numerator / denominator);
-              }
-            }
-          }
-          // Handle simple fractions like "1/2"
-          else if (typeof hpStr === 'string' && hpStr.includes('/')) {
-            const fractionParts = hpStr.split('/');
-            if (fractionParts.length === 2) {
-              const numerator = parseFloat(fractionParts[0]);
-              const denominator = parseFloat(fractionParts[1]);
-              if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
-                numericValue = numerator / denominator;
-              }
-            }
-          }
-          
-          // If not a fraction or mixed number, or if parsing failed
-          if (numericValue === undefined) {
-            numericValue = parseFloat(hpStr);
-          }
+          // Use the utility function to parse horsepower values
+          const numericValue = parseHorsePower(hp);
           
           return { original: hp, numeric: numericValue };
         })
@@ -714,49 +719,8 @@ useEffect(() => {
   >
     <option value="">{getText("All Output", language)}</option>
     {allHorsePowers.map(hp => {
-      // Convert HP to kW and W
-      let hpNum;
-      if (typeof hp === 'number') {
-        hpNum = hp;
-      } else if (typeof hp === 'string') {
-        const hpStr = String(hp).trim();
-        
-        // Handle mixed number format like "1 1/4"
-        if (hpStr.includes(' ') && hpStr.includes('/')) {
-          const parts = hpStr.split(' ');
-          const wholeNumber = parseFloat(parts[0]);
-          const fractionParts = parts[1].split('/');
-          if (fractionParts.length === 2) {
-            const numerator = parseFloat(fractionParts[0]);
-            const denominator = parseFloat(fractionParts[1]);
-            if (!isNaN(wholeNumber) && !isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
-              hpNum = wholeNumber + (numerator / denominator);
-            }
-          }
-        } 
-        // Handle simple fractions like "1/2"
-        else if (hpStr.includes('/')) {
-          const fractionParts = hpStr.split('/');
-          if (fractionParts.length === 2) {
-            const numerator = parseFloat(fractionParts[0]);
-            const denominator = parseFloat(fractionParts[1]);
-            if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
-              hpNum = numerator / denominator;
-            }
-          }
-        }
-        // Regular number
-        else {
-          hpNum = parseFloat(hpStr);
-        }
-      }
-      
-      // Calculate kW if we have a valid number
-      let kw, w;
-      if (!isNaN(hpNum)) {
-        kw = (hpNum * 0.745699872).toFixed(2);
-        w = Math.round(kw * 1000);
-      }
+      // Convert HP to kW and W using the utility function
+      const { kw, w } = horsePowerToKw(hp);
       
       return (
         <option key={hp} value={hp}>
