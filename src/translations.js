@@ -94,7 +94,7 @@ const translations = {
     "Search Tolerance": "Search Tolerance",
     "Flow Tolerance": "Flow Tolerance",
     "Head Tolerance": "Head Tolerance",
-    "Outlet Tolerance Range": "Outlet Tolerance Range (±10%)",
+    "Outlet Tolerance Range": "Outlet Tolerance Range (±1%)",
     
     // Estimated application
     "Estimated Application": "Estimated Application (based on Manual Input)",
@@ -165,7 +165,7 @@ const translations = {
     "ft": "ft",
     
     // Warnings & Errors
-    "Select Warning": "Please adjust your search parameters to find matching pumps.",
+    "Select Warning": "Try increasing the Flow or Head Tolerance for broader results, or contact our support team via the AI chatbot in the bottom right corner.",
     "No Matches": "No pumps match your criteria",
     "No Data": "No pump data available. Please check your data source.",
     "max head (m)": "Max Head (M)",
@@ -287,7 +287,7 @@ const translations = {
     "Search Tolerance": "搜尋容差",
     "Flow Tolerance": "流量容差",
     "Head Tolerance": "揚程容差",
-    "Outlet Tolerance Range": "出水口徑容差範圍 (±10%)",
+    "Outlet Tolerance Range": "出水口徑容差範圍 (±1%)",
     
     // Estimated application
     "Estimated Application": "估計應用 (基於手動輸入)",
@@ -358,7 +358,7 @@ const translations = {
     "ft": "英尺",
     
     // Warnings & Errors
-    "Select Warning": "請調整您的搜尋參數，以尋找符合的幫浦。",
+    "Select Warning": "請嘗試增加流量或揚程容差以獲得更廣泛的結果，或通過右下角的AI聊天機器人聯繫我們的支援團隊。",
     "No Matches": "沒有符合您條件的幫浦",
     "No Data": "無可用幫浦資料。請檢查您的資料來源。",
     "max head (m)": "最大揚程 (米)",

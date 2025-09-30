@@ -144,9 +144,9 @@ const AppContent = () => {
   const [headValue, setHeadValue] = React.useState(0);
 
   // Tolerance settings (percentage)
-  const [flowTolerance, setFlowTolerance] = React.useState(10); // Default 10% tolerance for flow
-  const [headTolerance, setHeadTolerance] = React.useState(10); // Default 10% tolerance for head
-  const [outletTolerance, setOutletTolerance] = React.useState(10); // Default 10% tolerance for outlet size
+  const [flowTolerance, setFlowTolerance] = React.useState(20); // Default 10% tolerance for flow
+  const [headTolerance, setHeadTolerance] = React.useState(20); // Default 10% tolerance for head
+  const [outletTolerance, setOutletTolerance] = React.useState(1); // Default 10% tolerance for outlet size
 
   // Results
   const [selectedPumps, setSelectedPumps] = React.useState([]);
