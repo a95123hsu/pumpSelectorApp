@@ -177,7 +177,10 @@ const translations = {
     "Previous": "Previous",
     "Next": "Next",
     "Page": "Page",
-    "Flow": "Flow"
+    "Flow": "Flow",
+    
+    // Instructions
+    "Instructions": "Instructions"
   },
   "繁體中文": {
     // App title and headers
@@ -370,7 +373,10 @@ const translations = {
     "Previous": "上一頁",
     "Next": "下一頁",
     "Page": "頁次",
-    "Flow": "流量"
+    "Flow": "流量",
+    
+    // Instructions
+    "Instructions": "使用說明"
   }
 };
 

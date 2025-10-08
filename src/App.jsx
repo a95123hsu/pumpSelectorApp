@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Search, HelpCircle } from 'lucide-react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Header from './components/Header';
 import DataStatus from './components/DataStatus';
 import supabase from './lib/supabase';
 import ColumnSelection from './components/ColumnSelection';
 import SimplePagination from './components/SimplePagination';
+import Instruction from './components/Instruction';
 
 // Lazy load components that aren't needed immediately
 const PumpCurves = lazy(() => import('./components/PumpCurves'));
@@ -168,6 +169,9 @@ const AppContent = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
+  
+  // Instructions modal state
+  const [showInstructions, setShowInstructions] = React.useState(false);
 
   // Calculate paginated data
   const paginatedData = useMemo(() => {
@@ -668,6 +672,15 @@ useEffect(() => {
                   <option value="English">English</option>
                   <option value="繁體中文">繁體中文</option>
                 </select>
+                {/* Instructions button */}
+                <button
+                  onClick={() => setShowInstructions(true)}
+                  className={`flex items-center px-3 py-2 rounded-md font-medium border ${darkMode ? 'bg-blue-600 text-white border-blue-500 hover:bg-blue-700' : 'bg-blue-500 text-white border-blue-400 hover:bg-blue-600'} transition-colors`}
+                  aria-label="Show Instructions"
+                >
+                  <HelpCircle className="w-5 h-5 mr-2" />
+                  {getText("Instructions", language) || "Instructions"}
+                </button>
               </div>
             </div>
           </div>
@@ -1387,6 +1400,11 @@ useEffect(() => {
             />
           )}
         </Suspense>
+        
+        {/* Instructions Modal */}
+        {showInstructions && (
+          <Instruction onClose={() => setShowInstructions(false)} />
+        )}
       </div>
     </div>
   );
