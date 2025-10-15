@@ -5,6 +5,7 @@ const translations = {
     "Hung Pump": "Hung Pump Group",
     "Pump Selection Tool": "Pump Selection Tool",
     "Data loaded": "Data loaded: {n_records} records | Last update: {timestamp}",
+    "Max Limits": "Maximum Limits (Optional)",
     
     // Buttons
     "Refresh Data": "Refresh Data",
@@ -85,7 +86,7 @@ const translations = {
     "Particle Size": "Max Particle Size (mm)",
     
     // Manual Input
-    "Manual Input": "Manual Input (Optional)",
+    "Manual Input": "Rated Performance (Optional)",
     "Flow Unit": "Flow Unit",
     "Rated Flow": "Rated Flow",
     "Flow Value": "Flow Value",
@@ -94,7 +95,15 @@ const translations = {
     "Search Tolerance": "Search Tolerance",
     "Flow Tolerance": "Flow Tolerance",
     "Head Tolerance": "Head Tolerance",
+    "Max Flow Tolerance": "Max Flow Tolerance",
+    "Max Head Tolerance": "Max Head Tolerance",
     "Outlet Tolerance Range": "Outlet Tolerance Range (±1%)",
+    "Filter pumps with maximum flow up to this limit": "Filter pumps with maximum flow up to this limit",
+    "Filter pumps with maximum head up to this limit": "Filter pumps with maximum head up to this limit",
+    "Max Flow Limit": "Max Flow Limit",
+    "Max Head Limit": "Max Head Limit",
+    "Max Flow": "Max Flow ({unit})",
+    "Max Head": "Max Head ({unit})",
     
     // Estimated application
     "Estimated Application": "Estimated Application (based on Manual Input)",
@@ -281,7 +290,7 @@ const translations = {
     "Particle Size": "最大固體顆粒尺寸 (毫米)",
     
     // Manual Input
-    "Manual Input": "手動輸入 (選填)",
+    "Manual Input": "額定性能 (選填)",
     "Flow Unit": "流量單位",
     "Rated Flow": "額定流量",
     "Flow Value": "流量值",
@@ -290,7 +299,16 @@ const translations = {
     "Search Tolerance": "搜尋容差",
     "Flow Tolerance": "流量容差",
     "Head Tolerance": "揚程容差",
+    "Max Flow Tolerance": "最大流量容差",
+    "Max Head Tolerance": "最大揚程容差",
     "Outlet Tolerance Range": "出水口徑容差範圍 (±1%)",
+    "Filter pumps with maximum flow up to this limit": "篩選最大流量不超過此限制的幫浦",
+    "Filter pumps with maximum head up to this limit": "篩選最大揚程不超過此限制的幫浦",
+    "Max Flow Limit": "最大流量限制",
+    "Max Head Limit": "最大揚程限制",
+    "Max Flow": "最大流量 ({unit})",
+    "Max Head": "最大揚程 ({unit})",
+    "Max Limits": "最大性能(選填)",
     
     // Estimated application
     "Estimated Application": "估計應用 (基於手動輸入)",

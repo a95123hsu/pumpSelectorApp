@@ -15,7 +15,7 @@ const Instruction = ({ onClose }) => {
         "Step2Title": "Step 2: Input Application Details",
         "Step2Content": "For applications like booster systems or pond drainage, enter details such as the number of floors, faucets, or pond dimensions. The system will calculate recommended flow rate and head values.",
         "Step3Title": "Step 3: Specify Flow Rate and Head Requirements",
-        "Step3Content": "Enter your specific flow rate and head requirements. Adjust the tolerance range using the sliders to broaden or narrow your search.",
+        "Step3Content": "Enter your specific flow rate and head requirements. Adjust the tolerance range using the sliders to broaden or narrow your search. You can also set Max Flow and Max Head limits to filter pumps by their maximum performance capabilities.",
         "Step4Title": "Step 4: Search and Review Results",
         "Step4Content": "Click the Search button to find matching pumps. Review the results table showing pumps that meet your criteria. If no pumps match, try increasing the tolerance settings.",
         "Step5Title": "Step 5: Compare and Select Pumps",
@@ -26,6 +26,7 @@ const Instruction = ({ onClose }) => {
         "Tip3": "If no results are found, try increasing the flow or head tolerance settings.",
         "Tip4": "For booster applications, the system calculates flow based on faucets and head based on floors.",
         "Tip5": "For pond drainage, the system calculates flow based on volume and drain time.",
+        "Tip6": "Use Max Flow and Max Head filters to set upper limits on pump performance for your application.",
         "ContactSupport": "Need additional help? Contact our support team through the AI chatbot in the bottom right corner."
       },
       "繁體中文": {
@@ -36,7 +37,7 @@ const Instruction = ({ onClose }) => {
         "Step2Title": "步驟 2：輸入應用詳情",
         "Step2Content": "對於增壓系統或池塘排水等應用，輸入樓層數、水龍頭數量或池塘尺寸等詳情。系統將計算推薦的流量和揚程值。",
         "Step3Title": "步驟 3：指定流量和揚程要求",
-        "Step3Content": "輸入您的特定流量和揚程要求。使用滑塊調整容差範圍以擴大或縮小搜索範圍。",
+        "Step3Content": "輸入您的特定流量和揚程要求。使用滑塊調整容差範圍以擴大或縮小搜索範圍。您還可以設置最大流量和最大揚程限制，根據幫浦的最大性能能力進行篩選。",
         "Step4Title": "步驟 4：搜尋並審查結果",
         "Step4Content": "點擊搜尋按鈕找到匹配的泵。查看結果表，顯示符合您條件的泵。如果沒有匹配的泵，請嘗試增加容差設置。",
         "Step5Title": "步驟 5：比較和選擇泵",
@@ -47,6 +48,7 @@ const Instruction = ({ onClose }) => {
         "Tip3": "如果找不到結果，請嘗試增加流量或揚程容差設置。",
         "Tip4": "對於增壓應用，系統根據水龍頭計算流量，根據樓層計算揚程。",
         "Tip5": "對於池塘排水，系統根據體積和排水時間計算流量。",
+        "Tip6": "使用最大流量和最大揚程過濾器為您的應用設置幫浦性能的上限。",
         "ContactSupport": "需要其他幫助？通過右下角的AI聊天機器人聯繫我們的支援團隊。"
       }
     };
@@ -175,6 +177,7 @@ const Instruction = ({ onClose }) => {
               <li>{getText("Tip3")}</li>
               <li>{getText("Tip4")}</li>
               <li>{getText("Tip5")}</li>
+              <li>{getText("Tip6")}</li>
             </ul>
           </div>
           

@@ -24,6 +24,7 @@ export const AVAILABLE_COLUMNS = [
   // Performance specs
   { id: "Efficiency", category: "performance", label: "Efficiency (%)" },
   { id: "Max Head(M)", category: "performance", label: "Max Head (M)" },
+  { id: "Max Flow (LPM)", category: "performance", label: "Flow at Max Head (LPM)" },
   
   // Categorization
   { id: "Category", category: "info", label: "Category" },

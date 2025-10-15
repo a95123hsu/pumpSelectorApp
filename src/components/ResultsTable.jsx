@@ -178,10 +178,14 @@ const ResultsTable = ({
 
   const otherColumns = [...orderedSelected, ...lastColumns].map(col => ({
     id: col,
-    // For the generic "Outlet" column, include the unit in the label
+    // For columns that need dynamic units in their labels
     label: col === "Outlet" 
       ? getText("Outlet with unit", language, { unit: outletUnitText })
-      : getText(col, language),
+      : (col === "Max Flow (LPM)" || col === "Max Flow(LPM)")
+        ? getText("Max Flow", language, { unit: flowUnitText })
+        : (col === "Max Head(M)" || col === "Max Head (M)")
+          ? getText("Max Head", language, { unit: headUnitText })
+          : getText(col, language),
     width: '160px',
     sortable: col !== "Product Link", // Don't make links sortable
     sortKey: col === "Outlet" 
@@ -198,6 +202,42 @@ const ResultsTable = ({
       
       // Handle phase translation
       if (col === 'Phase' && pump[col]) return getText(pump[col], language);
+      
+      // Handle Max Flow (LPM) conversion to user's preferred unit - also handle variations in column name
+      if (col === "Max Flow (LPM)") {
+        // Get the value, handle possible variations in column name
+        const flowValue = pump[col] !== undefined && pump[col] !== null ? 
+                          pump[col] : 
+                          pump["Max Flow(LPM)"];  // Check alternative format
+                          
+        if (flowValue !== undefined && flowValue !== null) {
+          const value = parseFloat(flowValue);
+          if (!isNaN(value)) {
+            const convertedValue = Math.round(convertFlowFromLpm(value, flowUnit) * 100) / 100;
+            return `${convertedValue} ${flowUnitText}`;
+          }
+          return flowValue;
+        }
+        return "-";
+      }
+      
+      // Handle Max Head(M) conversion to user's preferred unit - also handle variations in column name
+      if ((col === "Max Head(M)" || col === "Max Head (M)")) {
+        // Get the value from either column format
+        const headValue = pump[col] !== undefined && pump[col] !== null ? 
+                          pump[col] : 
+                          col === "Max Head(M)" ? pump["Max Head (M)"] : pump["Max Head(M)"];
+                          
+        if (headValue !== undefined && headValue !== null) {
+          const value = parseFloat(headValue);
+          if (!isNaN(value)) {
+            const convertedValue = Math.round(convertHeadFromM(value, headUnit) * 100) / 100;
+            return `${convertedValue} ${headUnitText}`;
+          }
+          return headValue;
+        }
+        return "-";
+      }
       
       // Handle product link
       if (col === "Product Link" && pump[col]) {

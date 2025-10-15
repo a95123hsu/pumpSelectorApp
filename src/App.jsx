@@ -143,6 +143,10 @@ const AppContent = () => {
   const [flowValue, setFlowValue] = React.useState(0);
   const [headUnit, setHeadUnit] = React.useState("m");
   const [headValue, setHeadValue] = React.useState(0);
+  const [maxFlowValue, setMaxFlowValue] = React.useState(0);
+  const [maxHeadValue, setMaxHeadValue] = React.useState(0);
+  const [maxFlowTolerance, setMaxFlowTolerance] = React.useState(10);  // Default 10% tolerance
+  const [maxHeadTolerance, setMaxHeadTolerance] = React.useState(10);  // Default 10% tolerance
 
   // Tolerance settings (percentage)
   const [flowTolerance, setFlowTolerance] = React.useState(20); // Default 10% tolerance for flow
@@ -360,6 +364,101 @@ const fetchData = async () => {
         return pumpHead >= headMin && pumpHead <= headMax;
       });
     }
+    
+    // Filter by max flow value (if set)
+    if (maxFlowValue > 0) {
+      const maxFlowLpm = convertFlowToLpm(maxFlowValue, flowUnit);
+      // Calculate tolerance range
+      const maxFlowMin = maxFlowLpm * (1 - maxFlowTolerance / 100);
+      const maxFlowMax = maxFlowLpm * (1 + maxFlowTolerance / 100);
+      
+      // Debug: Log ALL available flow fields in first few pumps
+      if (pumpRows && pumpRows.length > 0) {
+        console.log("Max Flow Filter Debug:");
+        console.log("- Input value:", maxFlowValue, flowUnit, "->", maxFlowLpm, "LPM");
+        console.log("- Tolerance range:", maxFlowMin, "-", maxFlowMax, "LPM");
+        console.log("- Available data keys:", Object.keys(pumpRows[0]).filter(k => k.toLowerCase().includes("flow")));
+        
+        // Log the first 3 pumps to see their Max Flow values
+        for (let i = 0; i < Math.min(3, pumpRows.length); i++) {
+          const pump = pumpRows[i];
+          console.log(`Pump ${i+1} (${pump["Model No."] || "Unknown"}):`, {
+            "Max Flow (LPM)": pump["Max Flow (LPM)"],
+            "Flow Type": typeof pump["Max Flow (LPM)"],
+            // Check for other possible column names
+            "Q Max": pump["Q Max"] || "N/A",
+            "MaxFlow": pump["MaxFlow"] || "N/A",
+            "Max_Flow": pump["Max_Flow"] || "N/A"
+          });
+        }
+      }
+      
+      // Try to handle both number and string values
+      pumpRows = pumpRows.filter(p => {
+        const pumpMaxFlow = p["Max Flow (LPM)"];
+        // If it's a string, convert to number
+        const numericValue = typeof pumpMaxFlow === 'string' ? parseFloat(pumpMaxFlow) : pumpMaxFlow;
+        // Log any pumps that match the tolerance range
+        if (numericValue >= maxFlowMin && numericValue <= maxFlowMax) {
+          console.log("Found match for Max Flow:", p["Model No."], numericValue);
+        }
+        return numericValue !== undefined && numericValue !== null && !isNaN(numericValue) && 
+               numericValue >= maxFlowMin && numericValue <= maxFlowMax;
+      });
+    }
+    
+    // Filter by max head value (if set)
+    if (maxHeadValue > 0) {
+      const maxHeadM = convertHeadToM(maxHeadValue, headUnit);
+      // Calculate tolerance range
+      const maxHeadMin = maxHeadM * (1 - maxHeadTolerance / 100);
+      const maxHeadMax = maxHeadM * (1 + maxHeadTolerance / 100);
+      
+      // Debug: Log ALL available head fields in first few pumps
+      if (pumpRows && pumpRows.length > 0) {
+        console.log("Max Head Filter Debug:");
+        console.log("- Input value:", maxHeadValue, headUnit, "->", maxHeadM, "M");
+        console.log("- Tolerance range:", maxHeadMin, "-", maxHeadMax, "M");
+        console.log("- Available data keys:", Object.keys(pumpRows[0]).filter(k => k.toLowerCase().includes("head")));
+        
+        // Log the first 3 pumps to see their Max Head values
+        for (let i = 0; i < Math.min(3, pumpRows.length); i++) {
+          const pump = pumpRows[i];
+          console.log(`Pump ${i+1} (${pump["Model No."] || "Unknown"}):`, {
+            "Max Head(M)": pump["Max Head(M)"],
+            "Max Head (M)": pump["Max Head (M)"],
+            "Head Type": typeof pump["Max Head(M)"] || typeof pump["Max Head (M)"],
+            // Check for other possible column names
+            "H Max": pump["H Max"] || "N/A",
+            "MaxHead": pump["MaxHead"] || "N/A",
+            "Max_Head": pump["Max_Head"] || "N/A"
+          });
+        }
+      }
+      
+      // Try to handle both column name variations and string/number conversion
+      pumpRows = pumpRows.filter(p => {
+        // Check both column name formats (with and without space)
+        const pumpMaxHead = p["Max Head(M)"] || p["Max Head (M)"];
+        // If it's a string, convert to number
+        const numericValue = typeof pumpMaxHead === 'string' ? parseFloat(pumpMaxHead) : pumpMaxHead;
+        // Log any pumps that match the tolerance range
+        if (numericValue >= maxHeadMin && numericValue <= maxHeadMax) {
+          console.log("Found match for Max Head:", p["Model No."], numericValue);
+        }
+        return numericValue !== undefined && numericValue !== null && !isNaN(numericValue) && 
+               numericValue >= maxHeadMin && numericValue <= maxHeadMax;
+      });
+    }
+
+    // Log filtering results
+    console.log("Filtering results:", {
+      "Total pumps after basic filters": pumpRows.length,
+      "Max Flow filter active": maxFlowValue > 0,
+      "Max Head filter active": maxHeadValue > 0,
+      "Flow value filter active": requiredFlowLpm > 0,
+      "Head value filter active": requiredHeadM > 0
+    });
 
     // Top X% by closeness
     let filtered = pumpRows;
@@ -479,7 +578,35 @@ const autoTdh  = isBooster ? Math.max(floors * 3.5, pondHeight)
   // Reset to first page when filters change
 useEffect(() => {
   setCurrentPage(1);
-}, [selectedCategory, hpFilter, modelFilter, outletSizeValue, outletSizeUnit, frequency, phase, flowValue, headValue]);
+}, [selectedCategory, hpFilter, modelFilter, outletSizeValue, outletSizeUnit, frequency, phase, 
+    flowValue, headValue, flowTolerance, headTolerance,
+    maxFlowValue, maxHeadValue, maxFlowTolerance, maxHeadTolerance]);
+
+// Automatically select Max Flow and Max Head columns when user inputs values in the Max Limits section
+useEffect(() => {
+  if (maxFlowValue > 0 || maxHeadValue > 0) {
+    // Create a new array with all current selections
+    const updatedColumns = [...selectedColumns];
+    
+    // Add Max Flow column if not already included and user has entered a value
+    if (maxFlowValue > 0 && !updatedColumns.includes("Max Flow (LPM)")) {
+      updatedColumns.push("Max Flow (LPM)");
+      console.log("Auto-selected Max Flow column due to user input in Max Limits section");
+    }
+    
+    // Add Max Head column if not already included and user has entered a value
+    const maxHeadColumnName = "Max Head(M)";
+    if (maxHeadValue > 0 && !updatedColumns.includes(maxHeadColumnName)) {
+      updatedColumns.push(maxHeadColumnName);
+      console.log("Auto-selected Max Head column due to user input in Max Limits section");
+    }
+    
+    // Only update state if we've added new columns
+    if (updatedColumns.length > selectedColumns.length) {
+      setSelectedColumns(updatedColumns);
+    }
+  }
+}, [maxFlowValue, maxHeadValue, selectedColumns]);
 
 
 
@@ -502,6 +629,10 @@ useEffect(() => {
     setParticleSize(0);
     setFlowValue(0);
     setHeadValue(0);
+    setMaxFlowValue(0);
+    setMaxHeadValue(0);
+    setMaxFlowTolerance(10);
+    setMaxHeadTolerance(10);
     setFlowTolerance(10);
     setHeadTolerance(10);
     setOutletTolerance(10);
@@ -1275,6 +1406,173 @@ useEffect(() => {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Max Limits */}
+        <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} rounded-lg shadow-sm border p-6 mb-6 transition-colors`}>
+          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-200' : ''}`}>{getText("Max Limits", language)}</h3>
+          
+          {/* Flow Unit Selection (reusing the same units from Manual Input) */}
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {getText("Flow Unit", language)}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {["L/min", "L/sec", "m³/hr", "m³/min", "US gpm"].map(unit => (
+                <button
+                  key={unit}
+                  onClick={() => setFlowUnit(unit)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    flowUnit === unit
+                      ? 'bg-blue-600 text-white'
+                      : darkMode
+                        ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {getText(unit, language)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {getText("Max Flow Limit", language)}
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="10"
+              value={maxFlowValue === '' ? '' : maxFlowValue}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setMaxFlowValue('');
+                } else {
+                  const parsed = parseFloat(value);
+                  if (!isNaN(parsed)) {
+                    setMaxFlowValue(parsed);
+                  }
+                }
+              }}
+              onBlur={() => {
+                if (maxFlowValue === '') {
+                  setMaxFlowValue(0);
+                }
+              }}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
+            />
+            <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {getText("Filter pumps with maximum flow up to this limit", language)}
+            </p>
+            
+            <div className="mt-3">
+              <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {getText("Max Flow Tolerance", language)} (±%)
+              </label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="50"
+                  step="1"
+                  value={maxFlowTolerance}
+                  onChange={(e) => setMaxFlowTolerance(parseInt(e.target.value))}
+                  className="flex-1"
+                />
+                <span className={`text-sm font-medium min-w-0 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  ±{maxFlowTolerance}%
+                </span>
+              </div>
+              {maxFlowValue > 0 && (
+                <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Range: {Math.round(convertFlowFromLpm(convertFlowToLpm(maxFlowValue, flowUnit) * (1 - maxFlowTolerance / 100), flowUnit) * 100) / 100} - {Math.round(convertFlowFromLpm(convertFlowToLpm(maxFlowValue, flowUnit) * (1 + maxFlowTolerance / 100), flowUnit) * 100) / 100} {getText(flowUnit, language)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Head Unit Selection */}
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {getText("Head Unit", language)}
+            </label>
+            <div className="flex gap-2">
+              {["m", "ft"].map(unit => (
+                <button
+                  key={unit}
+                  onClick={() => setHeadUnit(unit)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    headUnit === unit
+                      ? 'bg-blue-600 text-white'
+                      : darkMode
+                        ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {getText(unit, language)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {getText("Max Head Limit", language)}
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={maxHeadValue === '' ? '' : maxHeadValue}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setMaxHeadValue('');
+                } else {
+                  const parsed = parseFloat(value);
+                  if (!isNaN(parsed)) {
+                    setMaxHeadValue(parsed);
+                  }
+                }
+              }}
+              onBlur={() => {
+                if (maxHeadValue === '') {
+                  setMaxHeadValue(0);
+                }
+              }}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? 'bg-gray-800 text-gray-200 border-gray-700' : 'border-gray-300'}`}
+            />
+            <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {getText("Filter pumps with maximum head up to this limit", language)}
+            </p>
+            
+            <div className="mt-3">
+              <label className={`block text-xs font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {getText("Max Head Tolerance", language)} (±%)
+              </label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="50"
+                  step="1"
+                  value={maxHeadTolerance}
+                  onChange={(e) => setMaxHeadTolerance(parseInt(e.target.value))}
+                  className="flex-1"
+                />
+                <span className={`text-sm font-medium min-w-0 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  ±{maxHeadTolerance}%
+                </span>
+              </div>
+              {maxHeadValue > 0 && (
+                <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Range: {Math.round(convertHeadFromM(convertHeadToM(maxHeadValue, headUnit) * (1 - maxHeadTolerance / 100), headUnit) * 100) / 100} - {Math.round(convertHeadFromM(convertHeadToM(maxHeadValue, headUnit) * (1 + maxHeadTolerance / 100), headUnit) * 100) / 100} {getText(headUnit, language)}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Result Percentage Slider */}
